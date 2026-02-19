@@ -9,45 +9,99 @@
 html,body{width:100%;height:100%;background:#000;font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif}
 body{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 
-/* 상단 슬라이드 영역 */
+/* 슬라이드 영역 */
 #slide-wrap{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;background:#111}
-#slide-img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+#slide-img{max-width:100%;max-height:100%;object-fit:contain;display:block;user-select:none}
 
-/* 링크 배지 - 슬라이드 위 우측 */
-#link-badge{position:absolute;top:12px;right:14px;background:#FF8C00;color:#000;
-  font-size:13px;font-weight:900;padding:5px 12px;border-radius:20px;
-  display:none;animation:pulse 1.5s infinite;cursor:pointer;z-index:20;
-  box-shadow:0 0 12px rgba(255,140,0,0.7)}
-#link-badge.show{display:block}
-@keyframes pulse{0%,100%{box-shadow:0 0 8px rgba(255,140,0,0.7)}50%{box-shadow:0 0 20px rgba(255,140,0,1)}}
+/* ===== 슬라이드 위 링크 오버레이 ===== */
+#link-overlay{
+  position:absolute;
+  bottom:0; left:0; right:0;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  padding:0 0 16px 0;
+  pointer-events:none;
+  z-index:20;
+}
+#link-overlay.show{ display:flex; }
+
+/* 링크 헤더 */
+#link-overlay .ov-header{
+  background:rgba(255,140,0,0.92);
+  color:#000;
+  font-size:13px;
+  font-weight:900;
+  padding:4px 18px;
+  border-radius:20px 20px 0 0;
+  letter-spacing:1px;
+  pointer-events:none;
+}
+
+/* 링크 버튼 컨테이너 */
+#link-overlay .ov-btns{
+  background:rgba(0,10,30,0.88);
+  backdrop-filter:blur(8px);
+  border:2px solid rgba(255,140,0,0.7);
+  border-radius:0 0 16px 16px;
+  padding:12px 20px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+  pointer-events:all;
+  max-width:90%;
+  box-shadow:0 4px 24px rgba(0,0,0,0.6);
+}
+
+/* 링크 버튼 */
+#link-overlay a{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  color:#fff;
+  background:rgba(52,152,219,0.3);
+  border:1.5px solid #3498DB;
+  text-decoration:none;
+  font-size:14px;
+  font-weight:700;
+  padding:8px 18px;
+  border-radius:24px;
+  white-space:nowrap;
+  transition:all 0.2s;
+  cursor:pointer;
+}
+#link-overlay a:hover{
+  background:#3498DB;
+  color:#fff;
+  transform:scale(1.06);
+  box-shadow:0 0 14px rgba(52,152,219,0.8);
+}
 
 /* 화살표 */
-.arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);
-  border:none;color:#FF8C00;font-size:36px;cursor:pointer;padding:20px 12px;
-  z-index:10;border-radius:6px;transition:background 0.2s;line-height:1}
-.arrow:hover{background:rgba(255,140,0,0.4)}
+.arrow{
+  position:absolute;top:50%;transform:translateY(-50%);
+  background:rgba(0,0,0,0.45);border:none;color:#FF8C00;
+  font-size:38px;cursor:pointer;padding:18px 10px;
+  z-index:30;border-radius:6px;transition:background 0.2s;line-height:1;
+}
+.arrow:hover{background:rgba(255,140,0,0.35)}
 #arr-l{left:0}
 #arr-r{right:0}
 
-/* 링크 패널 */
-#link-panel{background:#001830;border-top:3px solid #FF8C00;padding:12px 20px;
-  display:none;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center}
-#link-panel.show{display:flex}
-#link-panel .lp-title{color:#FF8C00;font-size:13px;font-weight:900;margin-right:6px;white-space:nowrap}
-#link-panel a{color:#fff;background:#1a5276;text-decoration:none;font-size:14px;
-  font-weight:700;padding:7px 16px;border-radius:20px;white-space:nowrap;
-  transition:all 0.2s;border:1px solid #3498DB}
-#link-panel a:hover{background:#3498DB;transform:scale(1.05)}
-
 /* 하단 네비 */
-#nav{background:#001a3a;border-top:1px solid #222;padding:10px 20px;
-  display:flex;align-items:center;justify-content:center;gap:20px;flex-shrink:0}
-.nav-btn{background:none;border:2px solid #FF8C00;color:#FF8C00;
-  padding:6px 22px;border-radius:20px;cursor:pointer;font-size:15px;
-  font-weight:700;transition:all 0.2s;font-family:inherit}
+#nav{
+  background:#001a3a;border-top:1px solid #222;padding:10px 20px;
+  display:flex;align-items:center;justify-content:center;gap:20px;flex-shrink:0;
+}
+.nav-btn{
+  background:none;border:2px solid #FF8C00;color:#FF8C00;
+  padding:6px 24px;border-radius:20px;cursor:pointer;font-size:15px;
+  font-weight:700;transition:all 0.2s;font-family:inherit;
+}
 .nav-btn:hover{background:#FF8C00;color:#001a3a}
 .nav-btn:disabled{border-color:#333;color:#333;cursor:default}
-#counter{color:#aaa;font-size:14px;min-width:70px;text-align:center;font-weight:700}
+#counter{color:#ccc;font-size:15px;min-width:70px;text-align:center;font-weight:700}
 #progress{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,#FF8C00,#FFD700);transition:width 0.3s;z-index:100}
 </style>
 </head>
@@ -56,13 +110,16 @@ body{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 
 <div id="slide-wrap">
   <button class="arrow" id="arr-l" onclick="go(-1)">&#10094;</button>
-  <img id="slide-img" src="slides/slide1.png" alt="Slide 1">
-  <div id="link-badge" onclick="document.getElementById('link-panel').scrollIntoView()">🔗 링크 클릭!</div>
-  <button class="arrow" id="arr-r" onclick="go(1)">&#10095;</button>
-</div>
 
-<div id="link-panel">
-  <span class="lp-title">🔗 이 슬라이드 링크:</span>
+  <img id="slide-img" src="slides/slide1.png" alt="Slide 1">
+
+  <!-- 슬라이드 위 링크 오버레이 -->
+  <div id="link-overlay">
+    <div class="ov-header">🔗 클릭하여 바로 열기</div>
+    <div class="ov-btns" id="ov-btns"></div>
+  </div>
+
+  <button class="arrow" id="arr-r" onclick="go(1)">&#10095;</button>
 </div>
 
 <div id="nav">
@@ -81,13 +138,13 @@ var links = {
     { text: '🌐 SUNNY ECOSYSTEM Service Hub', url: 'https://sunwoongkyu.github.io/SUNNY_ECOSYSTEM/service-hub.html' }
   ],
   6: [
-    { text: '🔗 SSAL Works', url: 'https://ssalworks.ai.kr/' },
-    { text: '🔗 Politician Finder', url: 'https://www.politicianfinder.ai.kr/' },
-    { text: '🔗 ValueLine', url: 'https://sunwoongkyu.github.io/ValueLink/' },
-    { text: '🔗 MyChatbot World', url: 'https://mychatbot.world/' }
+    { text: 'SSAL Works', url: 'https://ssalworks.ai.kr/' },
+    { text: 'Politician Finder', url: 'https://www.politicianfinder.ai.kr/' },
+    { text: 'ValueLine', url: 'https://sunwoongkyu.github.io/ValueLink/' },
+    { text: 'MyChatbot World', url: 'https://mychatbot.world/' }
   ],
   22: [
-    { text: '🔗 MyChatbot World', url: 'https://mychatbot.world/' }
+    { text: 'MyChatbot World', url: 'https://mychatbot.world/' }
   ],
   23: [
     { text: '📊 V40 정치인 평가 프로세스 다이어그램', url: 'https://sunwoongkyu.github.io/AI_MagicShow/v40_process_diagram.html' }
@@ -111,12 +168,11 @@ var counter = document.getElementById('counter');
 var progress = document.getElementById('progress');
 var btnP = document.getElementById('btn-p');
 var btnN = document.getElementById('btn-n');
-var linkPanel = document.getElementById('link-panel');
-var linkBadge = document.getElementById('link-badge');
+var linkOverlay = document.getElementById('link-overlay');
+var ovBtns = document.getElementById('ov-btns');
 
 function updateSlide() {
   img.src = 'slides/slide' + cur + '.png';
-  img.alt = 'Slide ' + cur;
   counter.textContent = cur + ' / ' + TOTAL;
   progress.style.width = (cur / TOTAL * 100) + '%';
   btnP.disabled = (cur === 1);
@@ -124,16 +180,13 @@ function updateSlide() {
 
   var sl = links[cur];
   if (sl && sl.length > 0) {
-    linkPanel.innerHTML = '<span class="lp-title">🔗 이 슬라이드 링크:</span>'
-      + sl.map(function(l) {
-          return '<a href="' + l.url + '" target="_blank" rel="noopener noreferrer">' + l.text + '</a>';
-        }).join('');
-    linkPanel.classList.add('show');
-    linkBadge.classList.add('show');
+    ovBtns.innerHTML = sl.map(function(l) {
+      return '<a href="' + l.url + '" target="_blank" rel="noopener noreferrer">' + l.text + '</a>';
+    }).join('');
+    linkOverlay.classList.add('show');
   } else {
-    linkPanel.innerHTML = '';
-    linkPanel.classList.remove('show');
-    linkBadge.classList.remove('show');
+    ovBtns.innerHTML = '';
+    linkOverlay.classList.remove('show');
   }
 }
 
