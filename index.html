@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Magic Show - Sunny 2026</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
+  background:#002451;color:#fff;overflow:hidden;height:100vh;width:100vw}
+.deck{position:relative;width:100%;height:100%;overflow:hidden}
+.slide{position:absolute;top:0;left:0;width:100%;height:100%;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  padding:40px 60px;opacity:0;pointer-events:none;transition:opacity 0.4s ease;
+  background:#002451}
+.slide.active{opacity:1;pointer-events:auto}
+
+.slide-title{font-size:clamp(20px,3.5vw,36px);font-weight:900;color:#FF8C00;
+  text-align:center;margin-bottom:8px;line-height:1.3;max-width:900px}
+.slide-title a{color:#FF8C00;text-decoration:underline}
+.divider{width:180px;height:2px;background:linear-gradient(90deg,transparent,#FF8C00,transparent);
+  margin:10px auto 16px}
+.slide-body{max-width:860px;width:100%;display:flex;flex-direction:column;gap:8px}
+.body-item{font-size:clamp(13px,1.8vw,18px);color:#e0e0e0;line-height:1.6;padding:4px 0}
+.body-item a{color:#3498DB;text-decoration:underline}
+.step-item{font-size:clamp(13px,1.6vw,17px);color:#cce5ff;padding:6px 12px;
+  border-left:3px solid #FF8C00;margin:2px 0;background:rgba(255,140,0,0.08);border-radius:4px}
+.link-item{padding:4px 0}
+.link-item a{color:#3498DB;font-size:clamp(13px,1.6vw,16px);text-decoration:underline;font-weight:700}
+.link-item a:hover{color:#5dade2}
+
+.part-cover{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:#001a3a;width:100%;height:100%;text-align:center}
+.part-num{font-size:18px;color:#888;letter-spacing:4px;margin-bottom:12px}
+.part-icon{font-size:56px;margin:12px 0}
+.part-title{font-size:clamp(24px,4vw,44px);font-weight:900;color:#FF8C00;margin-bottom:10px}
+.part-sub{font-size:clamp(14px,2vw,20px);color:#ccc}
+.slide-empty{color:#666;font-size:20px}
+
+/* NAV */
+.nav{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+  display:flex;gap:10px;z-index:100;background:rgba(0,36,81,0.92);
+  padding:8px 20px;border-radius:30px;border:1px solid rgba(255,140,0,0.3);
+  backdrop-filter:blur(10px)}
+.nav button{background:none;border:2px solid #FF8C00;color:#FF8C00;
+  padding:5px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.2s}
+.nav button:hover{background:#FF8C00;color:#002451}
+.nav .counter{color:#aaa;font-size:13px;display:flex;align-items:center;min-width:56px;justify-content:center}
+.progress{position:fixed;top:0;left:0;height:3px;
+  background:linear-gradient(90deg,#FF8C00,#FFD700);transition:width 0.3s;z-index:101}
+.slide-num{position:fixed;top:10px;right:16px;font-size:12px;color:#555;z-index:100}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="slide-num" id="slideNum"></div>
+<div class="deck" id="deck"></div>
+<div class="nav">
+  <button onclick="go(-1)">◀</button>
+  <span class="counter" id="counter">1/52</span>
+  <button onclick="go(1)">▶</button>
+</div>
+<script>
+var slidesData = [{"num":1,"html":"<div class=\"slide-title\">AI Magic Show</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"step-item\">2026. 02. 20</div><div class=\"body-item\">Sunny</div></div>"},
+{"num":2,"html":"<div class=\"slide-title\">목차 Contents</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">Part 1</div><div class=\"body-item\">프롤로그</div><div class=\"body-item\">AI 마스터 Sunny 및 AI와의 여정 소개</div><div class=\"body-item\">Part 2</div><div class=\"body-item\">철학</div><div class=\"body-item\">Sunny의 AI 철학 10선</div><div class=\"body-item\">Part 3</div><div class=\"body-item\">Magic Show A</div><div class=\"body-item\">AI  Magic  시연 10가지</div><div class=\"body-item\">Part 4</div><div class=\"body-item\">Magic Show B</div><div class=\"body-item\">Sunny  CoreSkill Package 시연 10가지</div><div class=\"body-item\">Part 5</div><div class=\"body-item\">실용 Tips</div><div class=\"body-item\">실용적인팁 10가지</div><div class=\"body-item\">Part 6</div><div class=\"body-item\">에필로그</div><div class=\"body-item\">Q&amp;A  /  감사  /  마무리</div></div>"},
+{"num":3,"html":"<div class=\"part-cover\"><div class=\"part-num\">Part 1</div><div class=\"part-icon\">✨</div><div class=\"part-title\">프롤로그</div><div class=\"part-sub\">AI 마스터 Sunny 및 AI와의 여정을 소개합니다</div></div>"},
+{"num":4,"html":"<div class=\"slide-title\">AI Master &quot;Sunny&quot;</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">Sunny (선웅규)</div><div class=\"body-item\">📊  공인회계사 (CPA)  20년+</div><div class=\"body-item\">🚀  스타트업 액셀러레이터  10년+</div><div class=\"body-item\">🤖  AI Master  9개월+</div><div class=\"body-item\">AI와의 여정</div><div class=\"step-item\">2025.05</div><div class=\"body-item\">AI를 만나다</div><div class=\"body-item\">- Claude Code와의 첫 만남</div><div class=\"step-item\">3,500시간</div><div class=\"body-item\">9개월 × 하루 12시간+</div><div class=\"body-item\">- AI 활용능력키우기 집중</div><div class=\"step-item\">2026.02~</div><div class=\"body-item\">AI Master로서 활동</div><div class=\"body-item\">– 서비스 수익 창출</div><div class=\"body-item\">– 시니어 대상 코칭</div></div>"},
+{"num":5,"html":"<div class=\"slide-title\">3,500시간의 성과</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">📖 Claude &amp; Claude Code 책 집필</div><div class=\"step-item\">2025.09 PDF 제작 → 판매 사이트 구축</div><div class=\"link-item\"><a href=\"https://sales-system-psi.vercel.app/\" target=\"_blank\">🔗 sales-system-psi.vercel.app</a></div><div class=\"body-item\">📋 특허출원 3건</div><div class=\"body-item\">💡 50개+ 사업 기획</div><div class=\"link-item\"><a href=\"https://sunwoongkyu.github.io/SUNNY_ECOSYSTEM/service-hub.html\" target=\"_blank\">🔗 SUNNY ECOSYSTEM Service Hub</a></div><div class=\"body-item\">AI 활용 회계감사 수행</div><div class=\"body-item\">AI 법률 문서 작성 및 자문</div><div class=\"body-item\">🎓 현재 3명 코칭 중</div></div>"},
+{"num":6,"html":"<div class=\"slide-title\">풀스택 웹사이트 4개 제작</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">SSAL</div><div class=\"body-item\">Works</div><div class=\"body-item\">AI 를 활용한/</div><div class=\"body-item\">SAL Grid 기반</div><div class=\"body-item\">웹사이트 개발 플랫폼</div><div class=\"link-item\"><a href=\"https://ssalworks.ai.kr/\" target=\"_blank\">🔗 ssalworks.ai.kr</a></div><div class=\"body-item\">Politician</div><div class=\"body-item\">Finder</div><div class=\"body-item\">AI 기반의 정치인</div><div class=\"body-item\">평가/커뮤니티</div><div class=\"body-item\">플랫폼</div><div class=\"link-item\"><a href=\"https://www.politicianfinder.ai.kr/\" target=\"_blank\">🔗 politicianfinder.ai.kr</a></div><div class=\"body-item\">ValueLine</div><div class=\"body-item\">AI를 활용한</div><div class=\"body-item\">기업가치</div><div class=\"body-item\">평가/연결 플랫폼</div><div class=\"link-item\"><a href=\"https://sunwoongkyu.github.io/ValueLink/\" target=\"_blank\">🔗 sunwoongkyu.github.io/ValueLink</a></div><div class=\"body-item\">MyChatbot</div><div class=\"body-item\">World</div><div class=\"body-item\">AI 챗봇</div><div class=\"body-item\">라이프사이클</div><div class=\"body-item\">플랫폼</div><div class=\"link-item\"><a href=\"https://mychatbot.world/\" target=\"_blank\">🔗 mychatbot.world</a></div></div>"},
+{"num":7,"html":"<div class=\"part-cover\"><div class=\"part-num\">Part 2</div><div class=\"part-icon\">✨</div><div class=\"part-title\">Sunny의 AI 철학</div><div class=\"part-sub\">Sunny의 AI 철학 10선</div></div>"},
+{"num":8,"html":"<div class=\"slide-title\">철학 1 | 본질</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">나는 AI를</div><div class=\"body-item\">믿지도 않고 안믿지도 않는다</div><div class=\"body-item\">AI는 그저 AI다!!</div><div class=\"body-item\">산은 산이고 물은 물인 것처럼...</div></div>"},
+{"num":9,"html":"<div class=\"slide-title\">철학 2 | 본질</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">AI는 모방(模倣)의 도사</div><div class=\"body-item\">AI가 제일 잘하는 건 베끼기</div><div class=\"body-item\">이 모방의 도사를 잘 부리는 사람은</div><div class=\"body-item\">창조의 도사</div><div class=\"body-item\">사람이 해야 할 일은 창조하기</div></div>"},
+{"num":10,"html":"<div class=\"slide-title\">철학 3 | 본질</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">AI ≠ 프로그램</div><div class=\"body-item\">프로그램: 정확하지만 대화 불가 → 답답함</div><div class=\"body-item\">AI는 확률적이라 부정확</div><div class=\"body-item\">→ 하지만대화 가능!</div><div class=\"body-item\">→ QnA및 반복적 실행을 통해 개선 가능!</div><div class=\"body-item\">AI는 확률적으로 일하는 존재이고</div><div class=\"body-item\">따라서 틀려도 용서를 받는 특별한 존재</div><div class=\"body-item\">사람이 길러야 할 능력</div><div class=\"step-item\">① AI를 잘 부리는 능력</div><div class=\"step-item\">② AI 결과를 잘 확인하는 능력</div><div class=\"body-item\">→ AI 스스로먼저 검증</div><div class=\"body-item\">→ 사람이 추가확인</div><div class=\"body-item\">정확한 것처럼보여도 검증하고 확인</div></div>"},
+{"num":11,"html":"<div class=\"slide-title\">철학 4 | 본질</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">AI는사람의 능력을증폭시킨다</div><div class=\"body-item\">CPA + AI</div><div class=\"body-item\">→ 슈퍼 CPA</div><div class=\"body-item\">마케터 + AI</div><div class=\"body-item\">→ 슈퍼 마케터</div><div class=\"body-item\">기획자 + AI</div><div class=\"body-item\">→ 슈퍼 기획자</div><div class=\"body-item\">전문성 × AI = 10배, 100배의 결과</div></div>"},
+{"num":12,"html":"<div class=\"slide-title\">철학 5 | 태도</div><div class=\"divider\"></div>"},
+{"num":13,"html":"<div class=\"slide-title\">철학 6 | 태도</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">코딩이 아니라</div><div class=\"body-item\">프롬프팅을 하고 있다</div><div class=\"body-item\">포크레인이나왔는데여전히 삽질?</div><div class=\"body-item\">트랙터가나왔는데여전히 낫질?</div><div class=\"body-item\">AI가 코딩하는시대에</div><div class=\"body-item\">프롬프팅을통한 개발을 한다</div><div class=\"body-item\">기획서, 지침서, 템플릿,</div><div class=\"body-item\">디자인및 방법론 등을 준비하자</div><div class=\"body-item\">⚠ 개발관리방법론없이바이브코딩은 미친 짓!</div></div>"},
+{"num":14,"html":"<div class=\"slide-title\">철학 7 | 태도</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">이제는</div><div class=\"body-item\">모든 일을 AI와 함께 하는 것을</div><div class=\"body-item\">기본이자 표준으로</div><div class=\"body-item\">삼을 수밖에 없다</div></div>"},
+{"num":15,"html":"<div class=\"slide-title\">철학 8 | 태도</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">AI와 씨름에서의</div><div class=\"body-item\">좌절은</div><div class=\"body-item\">새로운 시작의</div><div class=\"body-item\">출발점</div></div>"},
+{"num":16,"html":"<div class=\"slide-title\">철학 9 | 원칙</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">AI로웹사이트등 개발만하지 말고</div><div class=\"body-item\">틈틈이 콘텐츠도만들어서안정된 수익을창출하자!</div><div class=\"body-item\">유튜브</div><div class=\"body-item\">롱폼/숏폼 콘텐츠 제작</div><div class=\"body-item\">블로그</div><div class=\"body-item\">지식공유</div></div>"},
+{"num":17,"html":"<div class=\"slide-title\">철학 10 | 원칙</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">Claude Code를</div><div class=\"body-item\">다룰 줄 아는 사람과</div><div class=\"body-item\">그렇지 않은 사람 간의 능력은</div><div class=\"step-item\">10배 이상</div><div class=\"body-item\">차이가 난다고 해도 과언이 아니다</div></div>"},
+{"num":18,"html":"<div class=\"part-cover\"><div class=\"part-num\">Part 3</div><div class=\"part-icon\">✨</div><div class=\"part-title\">Magic Show A</div><div class=\"part-sub\">AI Magic 시연 10가지</div></div>"},
+{"num":19,"html":"<div class=\"slide-title\">매직 1: 스무고개 문답 브레인스토밍</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">AI와스무고개 질문-답변으로 아이디어를구체화하기</div><div class=\"body-item\">막연한 아이디어 → 구체적인사업계획으로 발전</div><div class=\"body-item\">AI가 묻고, 내가 답하고 → 생각이정리되고 계획이 만들어진다</div></div>"},
+{"num":20,"html":"<div class=\"slide-title\">매직 2: 5단계로나누어서 작업</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">작업을 5단계로 나누어서AI에게 시키기</div><div class=\"body-item\">각 단계 완료 → 확인/테스트 → 승인 → 다음 단계 진행</div><div class=\"body-item\">&quot;한번에 다 해줘&quot;는 실패의 지름길</div><div class=\"body-item\">단계별 체크포인트가 품질을 보장한다</div></div>"},
+{"num":21,"html":"<div class=\"slide-title\">매직 3: 5회 반복디버깅</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">AI가형식적으로수정을 반복할 때 스스로 5회 반복 디버깅을 하도록 지시하기</div><div class=\"body-item\">핵심 프롬프트: &quot;신중하게 심각하게 근본 원인을 찾아봐&quot;</div><div class=\"body-item\">&quot;될 때까지 5번 반복해서 검토 → 수정 → 검토 → 수정&quot;</div><div class=\"body-item\">&quot;다 하고 나서 나한테보고해&quot;</div></div>"},
+{"num":22,"html":"<div class=\"slide-title\">매직 4: 5분만에 나의 챗봇 만들기</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">MyChatbot World 플랫폼에서 5분 만에 나만의 AI 챗봇생성하기</div><div class=\"body-item\">아바타및 도우미 페르소나 설정 → 감성 부여 → 기본지식 입력 → 완성</div><div class=\"body-item\">누구나 5분 내에 만들 수 있는 간편함</div><div class=\"body-item\">고객 상담, 홍보, 교육 등 다양한 활용</div><div class=\"link-item\"><a href=\"https://mychatbot.world/\" target=\"_blank\">🔗 mychatbot.world</a></div></div>"},
+{"num":23,"html":"<div class=\"slide-title\">매직 5: 정치인 평가프로세스진행</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">AI를활용한 정치인 평가 프로세스 진행하기</div><div class=\"body-item\">V40까지 진화 — 1,000시간 투입, 토큰비용 1천만원+</div><div class=\"body-item\">찐 R&amp;D를 통해 AI 점수 기반 평가 방법론 확립</div><div class=\"body-item\">CPA 경력 + AI = 대한민국 최고 수준의 AI 평가 능력</div><div class=\"body-item\">60여개 커뮤니티 기반 플랫폼에 확장 가능</div></div>"},
+{"num":24,"html":"<div class=\"slide-title\">매직 6: 유용한 /커맨드(Commands) 활용</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">/resume 끊어진 세션을이어서 작업 가능</div><div class=\"body-item\">/status 현재 사용모델 확인, 토큰 잔여량확인</div><div class=\"body-item\">자기만의 커맨드를 만들어서 활용하기</div></div>"},
+{"num":25,"html":"<div class=\"slide-title\">매직 7: Claude Code 듀얼 모드 실행</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">하나의 작업에 A, B 두 개의 Claude Code를 동시 투입하는 쌍두마차방식의 작업 시키기</div><div class=\"body-item\">크로스 체킹 — 서로의 결과를 검증</div><div class=\"body-item\">서로 다른 관점에서 문제 해결 → 종합</div><div class=\"body-item\">업무 분담 병렬 진행으로 속도 2배</div></div>"},
+{"num":26,"html":"<div class=\"slide-title\">매직 8: Claude Code로 다른 AI 용병 부리기</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">ChatGPT(Codex), Gemini, Grok의 CLI에게작업 시키기, Perplexity에게 묻기</div><div class=\"body-item\">CLI 방식(실행 기반 협업) vs  API 방식(텍스트왕복)</div><div class=\"body-item\">CLI = 실행 → 로그 → 검증 → 재실행 루프</div><div class=\"body-item\">각 AI 강점 활용: Codex=리팩터링/이미지 만들기, Gemini=대용량 처리/이미지 만들기, Grok=리서치</div><div class=\"body-item\">Claude가 오케스트레이터, 나머지 AI가 전문 도구 역할</div></div>"},
+{"num":27,"html":"<div class=\"slide-title\">매직 9: 원격 접속을 통한 Claude Code 작업시키기</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">Chrome 원격데스크톱기능으로어디에서든 내 컴퓨터의 Claude Code에게 작업시키기</div><div class=\"body-item\">카페, 이동 중, 집 밖에서도장소와 시간의 제약을 벗어나서 작업 연속성 유지</div></div>"},
+{"num":28,"html":"<div class=\"slide-title\">매직 10: 챗봇으로 Claude Code 지휘</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">핸드폰에 설치된챗봇을통해 무전기 사용방식으로 여러 Claude Code를지휘/통제하기</div><div class=\"body-item\">핸드폰의 챗봇을 통해서 지시 → Claude Code가 실행 → 결과 보고</div><div class=\"body-item\">이동 중에도 개발 작업을 멈추지 않는다</div><div class=\"link-item\"><a href=\"file:///C:/Users/wksun/MagicShow/cpc_flow_diagram.svg\" target=\"_blank\">🔗 CPC 시스템 구조도 보기</a></div></div>"},
+{"num":29,"html":"<div class=\"part-cover\"><div class=\"part-num\">Part 4</div><div class=\"part-icon\">✨</div><div class=\"part-title\">Magic Show B</div><div class=\"part-sub\">Sunny Core Skill Package 시연 10가지 🔗 SAL Grid Dev Suite 스킬 관계도 보기</div></div>"},
+{"num":30,"html":"<div class=\"slide-title\">스킬 1: 서브에이전트 투입</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">전문서브에이전트를 불러와서 특화 작업을맡기기</div><div class=\"step-item\">1</div><div class=\"body-item\">서브에이전트 목록에서 적합한 에이전트 선택</div><div class=\"step-item\">2</div><div class=\"body-item\">작업 지시서와 함께 서브에이전트에 투입</div><div class=\"step-item\">3</div><div class=\"body-item\">서브에이전트가 전문 분야 작업 수행</div><div class=\"step-item\">4</div><div class=\"body-item\">결과 수신 후 Main Claude Code가 통합·검증</div></div>"},
+{"num":31,"html":"<div class=\"slide-title\">스킬 2: 스킬 투입</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">미리 만들어둔 스킬을 찾아와서 현재 작업에투입하기</div><div class=\"step-item\">1</div><div class=\"body-item\">스킬 라이브러리에서 필요한 스킬 검색</div><div class=\"step-item\">2</div><div class=\"body-item\">스킬을 현재 프로젝트에 투입</div><div class=\"step-item\">3</div><div class=\"body-item\">스킬이 정해진 절차대로 작업 수행</div><div class=\"step-item\">4</div><div class=\"body-item\">결과 확인 및 다음 스킬 투입</div></div>"},
+{"num":32,"html":"<div class=\"slide-title\">스킬 3: PPT 등 문서 만들기</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">전문적인 PPT, 보고서, 기획서 등 문서를 AI가 자동생성하기</div><div class=\"step-item\">1</div><div class=\"body-item\">문서 유형과 목적 지시</div><div class=\"step-item\">2</div><div class=\"body-item\">AI가 구조·내용·디자인까지 자동 생성</div><div class=\"step-item\">3</div><div class=\"body-item\">검토 및 수정 지시</div><div class=\"step-item\">4</div><div class=\"body-item\">최종 문서 파일 출력</div></div>"},
+{"num":33,"html":"<div class=\"slide-title\">스킬 4: PDF 만들기</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">보고서, 인보이스, 가이드 등 다양한 PDF 문서를 AI가 자동생성하기</div><div class=\"step-item\">1</div><div class=\"body-item\">PDF 내용과 레이아웃 지시</div><div class=\"step-item\">2</div><div class=\"body-item\">AI가 PDF 생성 코드 작성·실행</div><div class=\"step-item\">3</div><div class=\"body-item\">결과 PDF 확인·수정</div><div class=\"step-item\">4</div><div class=\"body-item\">최종 PDF 파일 다운로드</div></div>"},
+{"num":34,"html":"<div class=\"slide-title\">스킬 5: 이미지 만들기</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">인포그래픽, 다이어그램, 일러스트 등 이미지를 AI가 자동 생성하기</div><div class=\"step-item\">1</div><div class=\"body-item\">이미지 목적과 스타일 지시</div><div class=\"step-item\">2</div><div class=\"body-item\">AI가 이미지 생성 프롬프트 작성</div><div class=\"step-item\">3</div><div class=\"body-item\">이미지 생성 AI로 제작</div><div class=\"step-item\">4</div><div class=\"body-item\">결과 이미지 확인·수정·적용</div></div>"},
+{"num":35,"html":"<div class=\"slide-title\">스킬 6: Review &amp; Evaluate</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">작업결과물을 AI가 자동으로검토하고평가하기</div><div class=\"step-item\">1</div><div class=\"body-item\">검토 대상과 평가 기준 설정</div><div class=\"step-item\">2</div><div class=\"body-item\">AI가 체계적으로 검토 수행</div><div class=\"step-item\">3</div><div class=\"body-item\">점수·피드백·개선점 리포트 생성</div><div class=\"step-item\">4</div><div class=\"body-item\">개선 사항 반영 후 재검토</div></div>"},
+{"num":36,"html":"<div class=\"slide-title\">스킬 7: 뉴스 스크랩 → 저장 → 이메일</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">뉴스 수집부터 정리, 저장, 이메일 발송까지 자동화 프로세스</div><div class=\"step-item\">1</div><div class=\"body-item\">뉴스 키워드·소스 설정</div><div class=\"step-item\">2</div><div class=\"body-item\">AI가 뉴스 수집·요약</div><div class=\"step-item\">3</div><div class=\"body-item\">정해진 형식으로 저장</div><div class=\"step-item\">4</div><div class=\"body-item\">이메일로 자동 발송</div></div>"},
+{"num":37,"html":"<div class=\"slide-title\">스킬 8: 유튜브 제작 프로세스</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">기획부터 대본, 영상 제작, 업로드까지 AI 활용한유튜브제작하기</div><div class=\"step-item\">1</div><div class=\"body-item\">주제 선정·기획안 작성</div><div class=\"step-item\">2</div><div class=\"body-item\">AI로 대본·스크립트 생성</div><div class=\"step-item\">3</div><div class=\"body-item\">음성·영상·자막 제작</div><div class=\"step-item\">4</div><div class=\"body-item\">편집·썸네일·업로드</div></div>"},
+{"num":38,"html":"<div class=\"slide-title\">스킬 9: 소대편제 30+ 에이전트 작업팀구성</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"step-item\">30개 이상의 AI 에이전트를군대의 소대식 편제로 조직하여 대규모 작업 수행</div><div class=\"step-item\">1</div><div class=\"body-item\">작업 범위 분석·팀 편성</div><div class=\"step-item\">2</div><div class=\"body-item\">소대장(메인 AI)이 분대별 임무 할당</div><div class=\"step-item\">3</div><div class=\"body-item\">각 분대(서브에이전트)가 병렬 작업</div><div class=\"step-item\">4</div><div class=\"body-item\">소대장이 결과 통합·품질 검증</div><div class=\"link-item\"><a href=\"file:///C:/Users/wksun/MagicShow/platoon_formation_v3.svg\" target=\"_blank\">🔗 소대편제 구조도 보기</a></div></div>"},
+{"num":39,"html":"<div class=\"slide-title\">스킬 10: SAL Grid 개발방법론 적용</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">SAL Grid 방법론을적용하여프로젝트설계, 실행 및 관리하기</div><div class=\"step-item\">1</div><div class=\"body-item\">SAL Grid 방법론 프레임워크 설정</div><div class=\"step-item\">2</div><div class=\"step-item\">3차원 그리드로 프로젝트 구조화</div><div class=\"step-item\">3</div><div class=\"body-item\">AI 에이전트별 역할·범위 정의</div><div class=\"step-item\">4</div><div class=\"body-item\">체계적 진행·검증·완료</div><div class=\"link-item\"><a href=\"https://www.ssalworks.ai.kr/S0_Project-SAL-Grid_%EC%83%9D%EC%84%B1/viewer/viewer_database.html\" target=\"_blank\">🔗 SAL Grid Viewer Database 보기</a></div></div>"},
+{"num":40,"html":"<div class=\"part-cover\"><div class=\"part-num\">Part 5</div><div class=\"part-icon\">✨</div><div class=\"part-title\">실용 Tips</div><div class=\"part-sub\">실용적인 팁 10가지</div></div>"},
+{"num":41,"html":"<div class=\"slide-title\">Tip 1: AI 작업시킬 때 먼저 하는 것들</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">AI에게 바로 실행시키지 마라!  먼저생각하게하라.</div><div class=\"step-item\">① &quot;검토 해봐&quot;  — 현재 상태를 먼저 파악시키기</div><div class=\"step-item\">② &quot;계획 세워봐&quot;  — 실행 전에 로드맵을 만들게 하기</div><div class=\"step-item\">③ &quot;방안을 제시해봐&quot;  — 여러 대안을 먼저 보기</div><div class=\"body-item\">→ 실행은 마지막! 검토 → 계획 → 방안 → 그다음 실행</div></div>"},
+{"num":42,"html":"<div class=\"slide-title\">Tip 2: Claude 앱/데스크탑VS Claude Code</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">Claude Code = 현장 기술자</div><div class=\"body-item\">실행자</div><div class=\"body-item\">• 코드 쓰고 파일 만들고 명령 실행</div><div class=\"body-item\">• &quot;MCP 연결하라고? 알겠습니다!&quot;</div><div class=\"body-item\">하고 바로 코드 짬</div><div class=\"body-item\">• 실행 도구(터미널)가 있으니</div><div class=\"body-item\">바로 행동하려 함</div><div class=\"body-item\">Claude 앱/데스크탑 = 컨설턴트</div><div class=\"body-item\">상담자</div><div class=\"body-item\">• 전체 구조를 보고 &quot;왜?&quot; 되물음</div><div class=\"body-item\">• &quot;잠깐, 그거 왜 MCP로 감싸요?&quot;</div><div class=\"body-item\">라고 물음</div><div class=\"body-item\">• 실행 도구가 없으니</div><div class=\"body-item\">대신 생각을 더 하게 됨</div><div class=\"body-item\">💡 Claude 앱/데스크탑에서 전략·설계 →  Claude Code에서실행</div></div>"},
+{"num":43,"html":"<div class=\"slide-title\">Tip 3: Vanilla vs React 비교</div><div class=\"divider\"></div>"},
+{"num":44,"html":"<div class=\"slide-title\">Tip 4: Orders/Reports JSON 시스템</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">AI의 외부 메모리</div><div class=\"body-item\">📋 Order Sheet</div><div class=\"body-item\">→ JSON으로 구조화된 작업 요청서</div><div class=\"body-item\">📊 Report</div><div class=\"body-item\">→ AI가 결과를 JSON으로 저장</div><div class=\"body-item\">✅ 세션 끊어져도 연속 작업 가능</div><div class=\"body-item\">✅ 체계적 작업 관리</div><div class=\"body-item\">✅ 자동화 연동 용이</div><div class=\"body-item\">&quot;어디까지 했더라...?&quot; 문제 해결!</div></div>"},
+{"num":45,"html":"<div class=\"slide-title\">Tip 5: AI의 Multi-Role 작업방식</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">5단계 멀티롤 프로세스</div><div class=\"step-item\">1단계: 기획자 역할</div><div class=\"step-item\">2단계: 작성자 역할</div><div class=\"step-item\">3단계: 검토자 역할</div><div class=\"step-item\">4단계: 비판자 역할</div><div class=\"body-item\">5단계: 최종 수정자 역할</div><div class=\"body-item\">품질과 일관성이 최우선인 작업에서 진가 발휘</div></div>"},
+{"num":46,"html":"<div class=\"slide-title\">Tip 6: AI(Claude Code) 12대 준수사항</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"step-item\">1</div><div class=\"body-item\">AI-First: 5가지 이상스스로 시도 후 인간에게 요청</div><div class=\"step-item\">2</div><div class=\"body-item\">거짓 보고 절대 금지: 정확성 &gt; 속도</div><div class=\"step-item\">3</div><div class=\"body-item\">시간 추정 절대 금지: 진행 상황만 보고</div><div class=\"step-item\">4</div><div class=\"body-item\">대안 제시: 최소 3개 이상 + 추천 의견</div><div class=\"body-item\">5</div><div class=\"body-item\">필수 검증: 완료 후 반드시 검증 도구 실행</div><div class=\"body-item\">6</div><div class=\"body-item\">작업 로그 기록: work_logs에 기록</div><div class=\"body-item\">7</div><div class=\"body-item\">문서 생성 사전 승인: 승인 후 생성</div><div class=\"body-item\">8</div><div class=\"body-item\">폴더 생성 사전 승인: 구조 무단 변경 금지</div><div class=\"body-item\">9</div><div class=\"body-item\">도구 적극 활용: Skills, Subagents, Commands</div><div class=\"step-item\">10</div><div class=\"body-item\">불확실하면 즉시 질문: 추측 금지</div><div class=\"step-item\">11</div><div class=\"body-item\">계획 수립 후 실행: 복잡한 작업은 계획 먼저</div><div class=\"step-item\">12</div><div class=\"body-item\">과잉 금지: 요청받은 것만 정확하게</div><div class=\"body-item\">→ CLAUDE.md에 반영</div></div>"},
+{"num":47,"html":"<div class=\"slide-title\">Tip 7: AI 활용능력의 측정지표</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">✅</div><div class=\"body-item\">효과성</div><div class=\"body-item\">품질 좋은 서비스를 만드는 능력</div><div class=\"body-item\">⚡</div><div class=\"body-item\">효율성</div><div class=\"body-item\">빠르고낮은 비용으로 만드는 능력</div><div class=\"body-item\">💰</div><div class=\"body-item\">수익성</div><div class=\"body-item\">가치 있는서비스를 출시하여 돈을 버는 능력</div><div class=\"body-item\">&quot;그저 뭐 만든다&quot; = &quot;좋은 취미생활 하시네요&quot; 😅</div></div>"},
+{"num":48,"html":"<div class=\"slide-title\">Tip 8: API 사용료최적화방안 적용으로 비용 81% 절감</div><div class=\"divider\"></div>"},
+{"num":49,"html":"<div class=\"slide-title\">Tip 9: 웹검색시킬 때 크레딧 폭탄 주의!</div><div class=\"divider\"></div>"},
+{"num":50,"html":"<div class=\"slide-title\">Tip 10: AI 활용능력 마스터 등급 체계</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">Sunny 구상</div><div class=\"step-item\">1~2단: 지식수준</div><div class=\"step-item\">3~4단: 활용경험</div><div class=\"body-item\">5~10단: 창출수입규모</div><div class=\"body-item\">우리모두 2년 이내에</div><div class=\"body-item\">9단(월 3억원)이상이 됩시다!</div></div>"},
+{"num":51,"html":"<div class=\"part-cover\"><div class=\"part-num\">Part 6</div><div class=\"part-icon\">✨</div><div class=\"part-title\">Q &amp; A</div></div>"},
+{"num":52,"html":"<div class=\"slide-title\">감사합니다</div><div class=\"divider\"></div><div class=\"slide-body\"><div class=\"body-item\">AI는 學보다 習이다</div><div class=\"body-item\">百學不如一習</div><div class=\"body-item\">AI Magic Show | 2026. 02. 20 | Sunny</div></div>"}];
+var cur = 0;
+var deck = document.getElementById('deck');
+var counter = document.getElementById('counter');
+var progress = document.getElementById('progress');
+var slideNum = document.getElementById('slideNum');
+
+slidesData.forEach(function(s, i) {
+  var d = document.createElement('div');
+  d.className = 'slide' + (i === 0 ? ' active' : '');
+  d.innerHTML = s.html;
+  deck.appendChild(d);
+});
+
+function go(dir) {
+  var all = deck.querySelectorAll('.slide');
+  if (cur + dir < 0 || cur + dir >= all.length) return;
+  all[cur].classList.remove('active');
+  cur += dir;
+  all[cur].classList.add('active');
+  counter.textContent = (cur+1) + '/' + all.length;
+  slideNum.textContent = 'Slide ' + (cur+1);
+  progress.style.width = ((cur+1)/all.length*100) + '%';
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === ' ') go(1);
+  if (e.key === 'ArrowLeft') go(-1);
+});
+
+var tx = 0;
+document.addEventListener('touchstart', function(e){ tx = e.touches[0].clientX; });
+document.addEventListener('touchend', function(e){
+  var dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 50) { dx < 0 ? go(1) : go(-1); }
+});
+
+progress.style.width = (1/slidesData.length*100) + '%';
+slideNum.textContent = 'Slide 1';
+</script>
+</body>
+</html>
