@@ -16,6 +16,7 @@
         html {
             scroll-behavior: smooth;
             font-size: 16px;
+            overflow-x: hidden;
         }
 
         body {
@@ -24,6 +25,12 @@
             color: #333;
             line-height: 1.75;
             -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
         }
 
         /* ===== Hero Section ===== */
@@ -817,6 +824,10 @@
                 font-size: 1.6rem;
             }
 
+            .hero .subtitle {
+                font-size: 1rem;
+            }
+
             .section {
                 padding: 28px 20px;
                 margin: 16px 10px;
@@ -827,13 +838,20 @@
                 font-size: 1.4rem;
             }
 
+            .section h3 {
+                font-size: 1.1rem;
+            }
+
             .toc {
                 padding: 8px 12px;
             }
 
             .toc a {
-                font-size: 0.75rem;
-                padding: 5px 10px;
+                font-size: 0.78rem;
+                padding: 10px 14px;
+                min-height: 44px;
+                display: inline-flex;
+                align-items: center;
             }
 
             .sal-axis {
@@ -841,6 +859,10 @@
             }
 
             .feature-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .sal-example-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -867,12 +889,95 @@
                 font-size: 0.78rem;
             }
 
+            .viewer-features {
+                grid-template-columns: 1fr;
+            }
+
             table {
                 font-size: 0.8rem;
             }
 
             thead th, tbody td {
                 padding: 8px 10px;
+            }
+
+            .table-wrap {
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .link-btn {
+                display: block;
+                text-align: center;
+                margin: 8px 0;
+                padding: 14px 20px;
+                min-height: 44px;
+            }
+
+            .btn-group {
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .before-box, .after-box {
+                padding: 20px 16px;
+            }
+
+            .quote-box {
+                padding: 24px 20px;
+            }
+
+            .callout {
+                padding: 16px 18px;
+            }
+
+            .platoon-row {
+                flex-wrap: wrap;
+                padding: 14px 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero {
+                padding: 36px 12px 28px;
+            }
+
+            .hero h1 {
+                font-size: 1.3rem;
+            }
+
+            .hero .subtitle {
+                font-size: 0.9rem;
+            }
+
+            .hero .meta {
+                font-size: 0.8rem;
+                gap: 10px;
+            }
+
+            .section {
+                padding: 20px 14px;
+                margin: 12px 6px;
+            }
+
+            .section h2 {
+                font-size: 1.2rem;
+            }
+
+            .toc a .toc-num {
+                display: none;
+            }
+
+            .ba-list li {
+                font-size: 0.88rem;
+            }
+
+            .vs-box .vs-time {
+                font-size: 1.2rem;
+            }
+
+            .compare-grid-2col {
+                grid-template-columns: 1fr !important;
             }
         }
 
@@ -1065,6 +1170,7 @@
         </table>
     </div>
 
+    <p style="margin-top: 24px;">SAL Grid는 <strong>특허 출원된 프로젝트 관리 방법론</strong>입니다. 아래 슬라이드쇼에서 상세 내용을 확인하세요.</p>
     <div class="btn-group">
         <a href="sal-grid-patent-slideshow.html" class="link-btn primary">SAL Grid 특허 소개 슬라이드쇼 &rarr;</a>
     </div>
@@ -1098,23 +1204,19 @@
 
     <h3>KAIT 업무 흐름도</h3>
     <div class="flow-diagram">
-        <div class="flow-step">컨설팅</div>
+        <div class="flow-step"><small>S1</small><br>컨설팅</div>
         <div class="flow-arrow">&rarr;</div>
-        <div class="flow-step">수집</div>
+        <div class="flow-step"><small>S2</small><br>수집</div>
         <div class="flow-arrow">&rarr;</div>
-        <div class="flow-step">분류</div>
+        <div class="flow-step"><small>S3</small><br>분류/정리</div>
         <div class="flow-arrow">&rarr;</div>
-        <div class="flow-step">정리</div>
+        <div class="flow-step"><small>S4</small><br>디지털화</div>
         <div class="flow-arrow">&rarr;</div>
-        <div class="flow-step">디지털화</div>
+        <div class="flow-step"><small>S5</small><br>DB구축</div>
         <div class="flow-arrow">&rarr;</div>
-        <div class="flow-step">DB구축</div>
+        <div class="flow-step"><small>S6</small><br>보존/활용</div>
         <div class="flow-arrow">&rarr;</div>
-        <div class="flow-step">보존</div>
-        <div class="flow-arrow">&rarr;</div>
-        <div class="flow-step">콘텐츠</div>
-        <div class="flow-arrow">&rarr;</div>
-        <div class="flow-step">시스템</div>
+        <div class="flow-step"><small>S7</small><br>납품/검수</div>
     </div>
 
     <h3>SAL Grid 매핑: Stage 7단계</h3>
@@ -1439,7 +1541,7 @@
     <div style="background: linear-gradient(135deg, #fff8e6 0%, #fff3d0 100%); border-radius: 12px; padding: 24px; margin: 20px 0; border-left: 5px solid #FF8C00;">
         <h4 style="color: #001a3a; margin-bottom: 12px;">왜 "벌떼"인가?</h4>
         <p style="margin-bottom: 12px;">기존 AI 활용은 <strong>1명의 AI와 1:1 대화</strong>입니다. Platoon Formation은 이것을 근본적으로 바꿉니다:</p>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="compare-grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             <div style="background: #fff0f0; border-radius: 8px; padding: 16px; text-align: center;">
                 <div style="font-size: 2rem; font-weight: 900; color: #dc3545;">1명</div>
                 <div style="font-size: 0.85rem; color: #666;">기존: AI 1명과 순차 작업</div>
@@ -1542,7 +1644,7 @@
                 <tr>
                     <td><strong>Alpha</strong></td>
                     <td>DO(문서) + OR(도면)</td>
-                    <td>S3DO1~S4DO1, S3OR1~S4OR1</td>
+                    <td>S3DO1~S3DO2, S3OR1~S4OR1</td>
                     <td>분대장 + 11명</td>
                 </tr>
                 <tr>
@@ -1724,6 +1826,7 @@
 <!-- ===== FOOTER ===== -->
 <footer class="footer">
     <p>&copy; 2026 AI Magic Show | SAL Grid Methodology</p>
+    <p style="margin-top: 8px; font-size: 0.8rem;">Powered by Claude Code &amp; Platoon Formation</p>
 </footer>
 
 <!-- ===== Scroll Animation ===== -->
