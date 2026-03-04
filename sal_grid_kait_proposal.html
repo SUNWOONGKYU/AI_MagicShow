@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAL Grid 방법론을 활용한 기록관리 프로젝트 혁신 제안</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* ===== Reset & Base ===== */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.75;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== Hero Section ===== */
+        .hero {
+            background: linear-gradient(135deg, #001a3a 0%, #003366 40%, #004080 70%, #001a3a 100%);
+            color: #fff;
+            padding: 80px 20px 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 30% 50%, rgba(255,140,0,0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .hero h1 {
+            font-size: 2.4rem;
+            font-weight: 900;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+            line-height: 1.3;
+        }
+
+        .hero h1 span {
+            color: #FF8C00;
+        }
+
+        .hero .subtitle {
+            font-size: 1.15rem;
+            font-weight: 300;
+            opacity: 0.9;
+            margin-bottom: 24px;
+        }
+
+        .hero .meta {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .hero .meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ===== Container ===== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ===== Table of Contents ===== */
+        .toc-wrapper {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .toc {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 12px 20px;
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+
+        .toc a {
+            display: inline-block;
+            padding: 6px 14px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: #001a3a;
+            text-decoration: none;
+            border-radius: 20px;
+            white-space: nowrap;
+            transition: all 0.25s;
+            border: 1px solid transparent;
+        }
+
+        .toc a:hover {
+            background: #FF8C00;
+            color: #fff;
+        }
+
+        .toc a .toc-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #001a3a;
+            color: #fff;
+            font-size: 0.7rem;
+            margin-right: 6px;
+            font-weight: 700;
+        }
+
+        .toc a:hover .toc-num {
+            background: #fff;
+            color: #FF8C00;
+        }
+
+        /* ===== Sections ===== */
+        .section {
+            background: #fff;
+            margin: 30px auto;
+            max-width: 900px;
+            border-radius: 16px;
+            padding: 48px 40px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-number {
+            display: inline-block;
+            background: #FF8C00;
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .section h2 {
+            color: #001a3a;
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: -0.3px;
+        }
+
+        .section h3 {
+            color: #001a3a;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 36px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #FF8C00;
+            display: inline-block;
+        }
+
+        .section h4 {
+            color: #333;
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 24px 0 12px;
+        }
+
+        .section-desc {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 28px;
+        }
+
+        .section p {
+            margin-bottom: 14px;
+        }
+
+        /* ===== SAL Definition ===== */
+        .sal-def {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+        }
+
+        .sal-def p {
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+
+        .sal-axis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .sal-axis-item {
+            background: #fff;
+            border-left: 4px solid #FF8C00;
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .sal-axis-item strong {
+            color: #001a3a;
+            font-size: 1rem;
+        }
+
+        .sal-axis-item span {
+            display: block;
+            color: #555;
+            font-size: 0.88rem;
+            margin-top: 4px;
+        }
+
+        /* ===== Tables ===== */
+        .table-wrap {
+            overflow-x: auto;
+            margin: 20px 0;
+            border-radius: 10px;
+            border: 1px solid #e8e8e8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        thead th {
+            background: #001a3a;
+            color: #fff;
+            padding: 12px 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: #fafafa;
+        }
+
+        tbody tr.total-row {
+            background: #fff8f0;
+            font-weight: 700;
+        }
+
+        tbody tr.total-row td {
+            border-top: 2px solid #FF8C00;
+            color: #001a3a;
+        }
+
+        .table-orange thead th {
+            background: #FF8C00;
+        }
+
+        /* ===== Feature Cards ===== */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .feature-card {
+            background: #fff;
+            border: 1px solid #e8e8e8;
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #FF8C00;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+
+        .feature-card .fc-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #FF8C00;
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+        }
+
+        .feature-card h4 {
+            color: #001a3a;
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin: 0 0 8px;
+        }
+
+        .feature-card p {
+            color: #555;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* ===== SAL ID Example Cards ===== */
+        .sal-example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 14px;
+            margin: 20px 0;
+        }
+
+        .sal-example-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 18px;
+            transition: all 0.3s;
+        }
+
+        .sal-example-card:hover {
+            border-color: #FF8C00;
+            box-shadow: 0 4px 12px rgba(255,140,0,0.1);
+        }
+
+        .sal-example-card .sal-id {
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #FF8C00;
+            margin-bottom: 6px;
+        }
+
+        .sal-example-card .sal-path {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .sal-example-card .sal-desc {
+            font-size: 0.9rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* ===== Flow Diagram ===== */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            overflow-x: auto;
+            padding: 24px 0;
+            margin: 20px 0;
+        }
+
+        .flow-step {
+            flex-shrink: 0;
+            background: #001a3a;
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            min-width: 80px;
+            transition: all 0.3s;
+        }
+
+        .flow-step:hover {
+            background: #FF8C00;
+            transform: scale(1.05);
+        }
+
+        .flow-arrow {
+            flex-shrink: 0;
+            color: #FF8C00;
+            font-size: 1.2rem;
+            padding: 0 4px;
+            font-weight: 700;
+        }
+
+        /* ===== Before/After Boxes ===== */
+        .before-box {
+            background: #fff0f0;
+            border: 2px solid #dc3545;
+            border-radius: 12px;
+            padding: 28px;
+            margin: 20px 0;
+        }
+
+        .before-box .box-label {
+            display: inline-block;
+            background: #dc3545;
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+
+        .after-box {
+            background: #f0fff0;
+            border: 2px solid #28a745;
+            border-radius: 12px;
+            padding: 28px;
+            margin: 20px 0;
+        }
+
+        .after-box .box-label {
+            display: inline-block;
+            background: #28a745;
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+
+        .ba-list {
+            list-style: none;
+            counter-reset: ba-counter;
+        }
+
+        .ba-list li {
+            counter-increment: ba-counter;
+            padding: 10px 0;
+            padding-left: 36px;
+            position: relative;
+            font-size: 0.92rem;
+            line-height: 1.7;
+        }
+
+        .ba-list li::before {
+            content: counter(ba-counter);
+            position: absolute;
+            left: 0;
+            top: 10px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .before-box .ba-list li::before {
+            background: #dc3545;
+        }
+
+        .after-box .ba-list li::before {
+            background: #28a745;
+        }
+
+        .ba-list li + li {
+            border-top: 1px solid rgba(0,0,0,0.06);
+        }
+
+        /* ===== Visual Comparison ===== */
+        .vs-compare {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 16px;
+            align-items: center;
+            margin: 28px 0;
+        }
+
+        .vs-box {
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+
+        .vs-box.before {
+            background: #fff0f0;
+            border: 1px solid #dc3545;
+        }
+
+        .vs-box.after {
+            background: #f0fff0;
+            border: 1px solid #28a745;
+        }
+
+        .vs-box .vs-time {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-top: 8px;
+        }
+
+        .vs-box.before .vs-time {
+            color: #dc3545;
+        }
+
+        .vs-box.after .vs-time {
+            color: #28a745;
+        }
+
+        .vs-divider {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #001a3a;
+            text-align: center;
+        }
+
+        /* ===== Quote / Callout ===== */
+        .quote-box {
+            background: linear-gradient(135deg, #001a3a 0%, #003366 100%);
+            color: #fff;
+            padding: 28px 32px;
+            border-radius: 12px;
+            margin: 28px 0;
+            position: relative;
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+
+        .quote-box::before {
+            content: '\201C';
+            position: absolute;
+            top: 10px;
+            left: 16px;
+            font-size: 3rem;
+            color: #FF8C00;
+            opacity: 0.5;
+            font-family: serif;
+            line-height: 1;
+        }
+
+        .quote-box p {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .quote-box p + p {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            opacity: 0.85;
+        }
+
+        .callout {
+            background: linear-gradient(135deg, #fff8f0 0%, #fff3e0 100%);
+            border-left: 4px solid #FF8C00;
+            padding: 20px 24px;
+            border-radius: 0 12px 12px 0;
+            margin: 24px 0;
+            font-size: 0.95rem;
+        }
+
+        .callout strong {
+            color: #FF8C00;
+        }
+
+        .callout-green {
+            background: linear-gradient(135deg, #f0fff0 0%, #e8f5e9 100%);
+            border-left-color: #28a745;
+        }
+
+        .callout-green strong {
+            color: #28a745;
+        }
+
+        /* ===== Platoon Diagram ===== */
+        .platoon-diagram {
+            background: #f8f9fa;
+            border: 2px solid #001a3a;
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 24px 0;
+            font-size: 0.88rem;
+        }
+
+        .platoon-row {
+            padding: 14px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .platoon-row:last-child {
+            border-bottom: none;
+        }
+
+        .platoon-row.hq {
+            background: linear-gradient(135deg, #001a3a 0%, #003366 100%);
+            color: #fff;
+        }
+
+        .platoon-row.squads {
+            background: #fff;
+        }
+
+        .platoon-row.mercs {
+            background: #fff8f0;
+        }
+
+        .platoon-row.skills {
+            background: #f0f4ff;
+        }
+
+        .platoon-row.total {
+            background: #FF8C00;
+            color: #fff;
+            font-weight: 700;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .squad-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            width: 100%;
+            padding: 8px 0;
+        }
+
+        .squad-card {
+            background: linear-gradient(135deg, #e8f0fe 0%, #f0f4ff 100%);
+            border: 1px solid #c0d0e8;
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .squad-card .squad-name {
+            font-weight: 700;
+            color: #001a3a;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .squad-card .squad-size {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .platoon-row .row-label {
+            font-weight: 600;
+            min-width: 60px;
+        }
+
+        /* ===== Link Buttons ===== */
+        .link-btn {
+            display: inline-block;
+            padding: 14px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        .link-btn.primary {
+            background: #FF8C00;
+            color: white;
+        }
+
+        .link-btn.primary:hover {
+            background: #e07b00;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,140,0,0.4);
+        }
+
+        .link-btn.secondary {
+            background: white;
+            color: #001a3a;
+            border: 2px solid #001a3a;
+        }
+
+        .link-btn.secondary:hover {
+            background: #001a3a;
+            color: white;
+        }
+
+        .btn-group {
+            text-align: center;
+            margin: 28px 0 12px;
+        }
+
+        /* ===== Viewer Features ===== */
+        .viewer-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .viewer-feature {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+            font-size: 0.88rem;
+            border: 1px solid #e8e8e8;
+            transition: all 0.3s;
+        }
+
+        .viewer-feature:hover {
+            border-color: #FF8C00;
+            background: #fff;
+        }
+
+        .viewer-feature .vf-icon {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+        }
+
+        .viewer-feature .vf-title {
+            font-weight: 600;
+            color: #001a3a;
+            margin-bottom: 4px;
+        }
+
+        .viewer-feature .vf-desc {
+            color: #666;
+            font-size: 0.82rem;
+        }
+
+        /* ===== Footer ===== */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .footer a {
+            color: #FF8C00;
+            text-decoration: none;
+        }
+
+        /* ===== SAL ID Code Style ===== */
+        code {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: #f0f0f0;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 0.88em;
+            color: #c7254e;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 768px) {
+            .hero {
+                padding: 50px 16px 40px;
+            }
+
+            .hero h1 {
+                font-size: 1.6rem;
+            }
+
+            .section {
+                padding: 28px 20px;
+                margin: 16px 10px;
+                border-radius: 12px;
+            }
+
+            .section h2 {
+                font-size: 1.4rem;
+            }
+
+            .toc {
+                padding: 8px 12px;
+            }
+
+            .toc a {
+                font-size: 0.75rem;
+                padding: 5px 10px;
+            }
+
+            .sal-axis {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .vs-compare {
+                grid-template-columns: 1fr;
+            }
+
+            .vs-divider {
+                transform: rotate(90deg);
+            }
+
+            .squad-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .flow-diagram {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .flow-step {
+                min-width: 70px;
+                padding: 8px 12px;
+                font-size: 0.78rem;
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            thead th, tbody td {
+                padding: 8px 10px;
+            }
+        }
+
+        /* ===== Print ===== */
+        @media print {
+            .toc-wrapper {
+                display: none;
+            }
+
+            .hero {
+                background: #001a3a !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .section {
+                opacity: 1 !important;
+                transform: none !important;
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ddd;
+                margin: 16px auto;
+            }
+
+            .feature-card:hover,
+            .sal-example-card:hover,
+            .flow-step:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
+            .link-btn {
+                border: 1px solid #333 !important;
+            }
+
+            body {
+                background: #fff;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+<header class="hero">
+    <div class="container">
+        <h1><span>SAL Grid</span> 방법론을 활용한<br>기록관리 프로젝트 혁신 제안</h1>
+        <p class="subtitle">한국문헌정보기술(KAIT) 맞춤 적용 방안</p>
+        <div class="meta">
+            <span>2026년 3월 10일</span>
+            <span>|</span>
+            <span>AI Magic Show</span>
+        </div>
+    </div>
+</header>
+
+<!-- ===== TABLE OF CONTENTS ===== -->
+<nav class="toc-wrapper">
+    <div class="toc">
+        <a href="#sec1"><span class="toc-num">1</span>SAL Grid 개요</a>
+        <a href="#sec2"><span class="toc-num">2</span>KAIT 적용</a>
+        <a href="#sec3"><span class="toc-num">3</span>Before &amp; After</a>
+        <a href="#sec4"><span class="toc-num">4</span>기대 효과</a>
+        <a href="#sec5"><span class="toc-num">5</span>AI Platoon</a>
+        <a href="#sec6"><span class="toc-num">6</span>Viewer 체험</a>
+    </div>
+</nav>
+
+<!-- ===== SECTION 1 ===== -->
+<section class="section" id="sec1">
+    <span class="section-number">SECTION 01</span>
+    <h2>SAL Grid 방법론 개요</h2>
+    <p class="section-desc">3차원 좌표계 기반 프로젝트 관리 방법론의 핵심 개념을 소개합니다.</p>
+
+    <h3>SAL Grid란?</h3>
+    <div class="sal-def">
+        <p>SAL Grid는 <strong>3차원 좌표계 기반 프로젝트 관리 방법론</strong>입니다. 모든 작업이 3차원 좌표(S, A, L)로 고유하게 식별됩니다.</p>
+        <div class="sal-axis">
+            <div class="sal-axis-item">
+                <strong>Stage (S)</strong>
+                <span>프로젝트의 시간축. 단계별 진행 (S0 &rarr; S1 &rarr; ... &rarr; Sn)</span>
+            </div>
+            <div class="sal-axis-item">
+                <strong>Area (A)</strong>
+                <span>작업 영역. 독립적 도메인 구분 (DO, PH, VD, OR 등)</span>
+            </div>
+            <div class="sal-axis-item">
+                <strong>Level (L)</strong>
+                <span>작업 깊이. 같은 Stage&times;Area 안에서의 세부 순서</span>
+            </div>
+        </div>
+    </div>
+
+    <h3>SAL ID 구조</h3>
+    <p>형식: <code>S{stage}{AREA}{level}{variant?}</code></p>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>SAL ID</th>
+                    <th>Stage</th>
+                    <th>Area</th>
+                    <th>Level</th>
+                    <th>해석</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>S0PM1</code></td>
+                    <td>0 (사전컨설팅)</td>
+                    <td>PM (프로젝트관리)</td>
+                    <td>1</td>
+                    <td>첫 번째 PM 작업</td>
+                </tr>
+                <tr>
+                    <td><code>S2DO1</code></td>
+                    <td>2 (분류/정리)</td>
+                    <td>DO (일반문서)</td>
+                    <td>1</td>
+                    <td>일반문서 분류 첫 작업</td>
+                </tr>
+                <tr>
+                    <td><code>S3PH2</code></td>
+                    <td>3 (디지털화)</td>
+                    <td>PH (사진)</td>
+                    <td>2</td>
+                    <td>사진 디지털화 두 번째 작업</td>
+                </tr>
+                <tr>
+                    <td><code>S4DB1</code></td>
+                    <td>4 (DB 구축)</td>
+                    <td>DB (데이터베이스)</td>
+                    <td>1</td>
+                    <td>DB 입력 첫 작업</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>핵심 특징 5가지</h3>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="fc-num">1</div>
+            <h4>No-Code 정의</h4>
+            <p>코드 없이 프로젝트 구조 정의. 누구나 SAL ID만으로 작업 정의 가능</p>
+        </div>
+        <div class="feature-card">
+            <div class="fc-num">2</div>
+            <h4>자기설명적 ID</h4>
+            <p>ID 자체가 작업의 위치/성격/순서를 설명. S3PH2 = "디지털화 단계의 사진 영역 두 번째 작업"</p>
+        </div>
+        <div class="feature-card">
+            <div class="fc-num">3</div>
+            <h4>자동 의존성</h4>
+            <p>Stage 순서로 의존성이 자동 결정. S2 완료 &rarr; S3 시작. 수동 의존성 설정 불필요</p>
+        </div>
+        <div class="feature-card">
+            <div class="fc-num">4</div>
+            <h4>Stage Gate 검증</h4>
+            <p>각 Stage 경계에서 품질 검증. 미완료 작업이 있으면 다음 Stage 진입 불가</p>
+        </div>
+        <div class="feature-card">
+            <div class="fc-num">5</div>
+            <h4>ID Chain 추적</h4>
+            <p>SAL ID로 작업 간 관계 추적. 어떤 작업이 어떤 작업에 의존하는지 즉시 파악</p>
+        </div>
+    </div>
+
+    <h3>기존 도구 비교</h3>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>비교 항목</th>
+                    <th>엑셀/스프레드시트</th>
+                    <th>Jira/PM도구</th>
+                    <th>SAL Grid</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>학습 곡선</td><td>낮음</td><td>높음</td><td><strong>낮음</strong></td></tr>
+                <tr><td>구조화</td><td>수동 (시트별 관리)</td><td>중간 (티켓 기반)</td><td><strong>자동 (3차원 좌표)</strong></td></tr>
+                <tr><td>ID 체계</td><td>없음 (행 번호)</td><td>자동 증가 번호</td><td><strong>자기설명적 SAL ID</strong></td></tr>
+                <tr><td>의존성 관리</td><td>수동</td><td>수동 설정</td><td><strong>자동 (Stage 순서)</strong></td></tr>
+                <tr><td>품질 게이트</td><td>없음</td><td>플러그인 필요</td><td><strong>내장 Stage Gate</strong></td></tr>
+                <tr><td>AI 연동</td><td>불가</td><td>API 필요</td><td><strong>네이티브 지원</strong></td></tr>
+                <tr><td>비용</td><td>무료~저가</td><td>고가</td><td><strong>무료 (방법론)</strong></td></tr>
+                <tr><td>대규모 프로젝트</td><td>한계</td><td>복잡</td><td><strong>확장 용이</strong></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="btn-group">
+        <a href="sal-grid-patent-slideshow.html" class="link-btn primary">SAL Grid 특허 소개 슬라이드쇼 &rarr;</a>
+    </div>
+</section>
+
+<!-- ===== SECTION 2 ===== -->
+<section class="section" id="sec2">
+    <span class="section-number">SECTION 02</span>
+    <h2>KAIT 기록관리 업무에 SAL Grid 적용</h2>
+    <p class="section-desc">한국문헌정보기술(KAIT)의 기록관리 프로세스에 SAL Grid를 어떻게 매핑하는지 살펴봅니다.</p>
+
+    <h3>KAIT 소개</h3>
+    <p>한국문헌정보기술(KAIT)은 기록관리 전문기업으로 다음과 같은 역량을 보유하고 있습니다.</p>
+    <div class="feature-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+        <div class="feature-card" style="text-align:center;">
+            <div style="font-size:2rem; font-weight:900; color:#FF8C00;">437</div>
+            <p style="font-weight:600; color:#001a3a;">고객사</p>
+            <p style="font-size:0.8rem;">공공기관, 대학, 연구기관</p>
+        </div>
+        <div class="feature-card" style="text-align:center;">
+            <div style="font-size:2rem; font-weight:900; color:#FF8C00;">2,526</div>
+            <p style="font-weight:600; color:#001a3a;">완료 프로젝트</p>
+            <p style="font-size:0.8rem;">풍부한 실적과 노하우</p>
+        </div>
+        <div class="feature-card" style="text-align:center;">
+            <div style="font-size:2rem; font-weight:900; color:#FF8C00;">4대</div>
+            <p style="font-weight:600; color:#001a3a;">핵심 역량</p>
+            <p style="font-size:0.8rem;">정리, 디지털화, DB구축, 시스템</p>
+        </div>
+    </div>
+
+    <h3>KAIT 업무 흐름도</h3>
+    <div class="flow-diagram">
+        <div class="flow-step">컨설팅</div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step">수집</div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step">분류</div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step">정리</div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step">디지털화</div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step">DB구축</div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step">보존</div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step">콘텐츠</div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step">시스템</div>
+    </div>
+
+    <h3>SAL Grid 매핑: Stage 7단계</h3>
+    <div class="table-wrap">
+        <table class="table-orange">
+            <thead>
+                <tr>
+                    <th>Stage</th>
+                    <th>단계명</th>
+                    <th>주요 활동</th>
+                    <th>산출물</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>S0</strong></td><td>사전컨설팅</td><td>현황조사, 범위확정, 견적</td><td>컨설팅 보고서</td></tr>
+                <tr><td><strong>S1</strong></td><td>기록물 수집</td><td>이관, 반출, 목록화</td><td>수집 목록</td></tr>
+                <tr><td><strong>S2</strong></td><td>분류/정리</td><td>분류체계 적용, 메타데이터 부여</td><td>분류 완료 목록</td></tr>
+                <tr><td><strong>S3</strong></td><td>디지털화</td><td>스캔, OCR, 품질검수</td><td>디지털 파일</td></tr>
+                <tr><td><strong>S4</strong></td><td>DB 구축</td><td>시스템 입력, 연계</td><td>DB 등록 완료</td></tr>
+                <tr><td><strong>S5</strong></td><td>보존/활용</td><td>보존처리, 콘텐츠 제작</td><td>보존 처리 기록물</td></tr>
+                <tr><td><strong>S6</strong></td><td>납품/검수</td><td>최종검수, 인수인계, 교육</td><td>납품 보고서</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>SAL Grid 매핑: Area 코드</h3>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Area 코드</th>
+                    <th>영역</th>
+                    <th>대상 기록물 예시</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><code>DO</code></td><td>일반문서</td><td>공문, 보고서, 회의록, 대장</td></tr>
+                <tr><td><code>PH</code></td><td>사진</td><td>행사사진, 증명사진, 항공사진</td></tr>
+                <tr><td><code>VD</code></td><td>영상</td><td>녹화영상, 홍보영상, 구술영상</td></tr>
+                <tr><td><code>OR</code></td><td>원도면</td><td>설계도, 건축도면, 지적도</td></tr>
+                <tr><td><code>MD</code></td><td>메타데이터</td><td>기술정보, 분류코드, 색인어</td></tr>
+                <tr><td><code>DB</code></td><td>데이터베이스</td><td>RMS 연계, CAMS 등록</td></tr>
+                <tr><td><code>QC</code></td><td>품질검수</td><td>검수보고서, 오류목록, 수정이력</td></tr>
+                <tr><td><code>PM</code></td><td>프로젝트관리</td><td>일정표, 인력배치, 주간보고</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>SAL ID 실제 예시</h3>
+    <div class="sal-example-grid">
+        <div class="sal-example-card">
+            <div class="sal-id">S0PM1</div>
+            <div class="sal-path">사전컨설팅 / 프로젝트관리 / 첫 번째 작업</div>
+            <div class="sal-desc">"프로젝트 킥오프 미팅"</div>
+        </div>
+        <div class="sal-example-card">
+            <div class="sal-id">S1DO1</div>
+            <div class="sal-path">기록물 수집 / 일반문서 / 첫 번째 작업</div>
+            <div class="sal-desc">"이관대상 목록 작성"</div>
+        </div>
+        <div class="sal-example-card">
+            <div class="sal-id">S2MD1</div>
+            <div class="sal-path">분류/정리 / 메타데이터 / 첫 번째 작업</div>
+            <div class="sal-desc">"메타데이터 자동추출"</div>
+        </div>
+        <div class="sal-example-card">
+            <div class="sal-id">S3PH2</div>
+            <div class="sal-path">디지털화 / 사진 / 두 번째 작업</div>
+            <div class="sal-desc">"사진 디지털 복원"</div>
+        </div>
+        <div class="sal-example-card">
+            <div class="sal-id">S4DB1</div>
+            <div class="sal-path">DB 구축 / 데이터베이스 / 첫 번째 작업</div>
+            <div class="sal-desc">"RMS 시스템 데이터 입력"</div>
+        </div>
+        <div class="sal-example-card">
+            <div class="sal-id">S6QC1</div>
+            <div class="sal-path">납품/검수 / 품질검수 / 첫 번째 작업</div>
+            <div class="sal-desc">"최종 품질검수"</div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== SECTION 3 ===== -->
+<section class="section" id="sec3">
+    <span class="section-number">SECTION 03</span>
+    <h2>Before &amp; After 비교</h2>
+    <p class="section-desc">SAL Grid 도입 전후의 프로젝트 관리 방식을 비교합니다.</p>
+
+    <div class="before-box">
+        <span class="box-label">BEFORE &mdash; 현재 방식 (추정)</span>
+        <ol class="ba-list">
+            <li><strong>엑셀 기반 관리:</strong> 프로젝트마다 별도 엑셀 파일. 버전 충돌, 동시 편집 불가</li>
+            <li><strong>구두/메신저 커뮤니케이션:</strong> 작업 상태 확인을 위해 담당자에게 직접 물어야 함</li>
+            <li><strong>경험 의존적 분류:</strong> 기록물 분류가 담당자 경험에 의존. 신규 인력 투입 시 품질 저하</li>
+            <li><strong>수동 진행률 추적:</strong> 전체 프로젝트 진행률을 파악하려면 여러 시트를 수동 취합</li>
+            <li><strong>인수인계 어려움:</strong> 담당자 변경 시 업무 파악에 며칠 소요. 암묵지 의존</li>
+            <li><strong>재작업 빈발:</strong> 이전 단계 미완료 상태에서 다음 단계 진행 &rarr; 재작업 발생</li>
+        </ol>
+    </div>
+
+    <div class="after-box">
+        <span class="box-label">AFTER &mdash; SAL Grid 적용 후</span>
+        <ol class="ba-list">
+            <li><strong>구조화된 SAL Grid:</strong> 하나의 Grid로 전체 프로젝트 관리. 실시간 동기화</li>
+            <li><strong>SAL ID 즉시 확인:</strong> S2DO1 상태? &rarr; Viewer에서 즉시 확인. 물어볼 필요 없음</li>
+            <li><strong>체계적 분류 코드:</strong> Area 코드(DO/PH/VD/OR)로 분류 기준 표준화. 신규 인력도 즉시 적용</li>
+            <li><strong>자동 진행률 산출:</strong> Stage별 완료율 자동 계산. 대시보드에서 한눈에 파악</li>
+            <li><strong>자기설명적 구조:</strong> SAL ID만 보면 업무 파악 완료. 인수인계 시간: 며칠 &rarr; 수분</li>
+            <li><strong>Stage Gate 차단:</strong> S2 미완료 &rarr; S3 진입 불가. 재작업 원천 차단</li>
+        </ol>
+    </div>
+
+    <h3>시각적 비교</h3>
+    <div class="vs-compare">
+        <div class="vs-box before">
+            <div>엑셀 시트 3개<br>+ 메신저 확인<br>+ 수동 취합</div>
+            <div class="vs-time">현황 파악 2시간</div>
+        </div>
+        <div class="vs-divider">VS</div>
+        <div class="vs-box after">
+            <div>SAL Grid Viewer 1개<br>+ 클릭</div>
+            <div class="vs-time">현황 파악 10초</div>
+        </div>
+    </div>
+
+    <div class="quote-box">
+        <p><strong>"사람에 의존하던 관리 &rarr; 구조에 의존하는 관리"</strong></p>
+        <p>SAL Grid는 프로젝트의 '언어'를 통일합니다. 누가 관리하든 같은 구조, 같은 ID, 같은 기준.</p>
+    </div>
+</section>
+
+<!-- ===== SECTION 4 ===== -->
+<section class="section" id="sec4">
+    <span class="section-number">SECTION 04</span>
+    <h2>기대 효과 &mdash; 비용/시간 절감</h2>
+    <p class="section-desc">SAL Grid 도입으로 기대되는 구체적인 비용 및 시간 절감 효과를 분석합니다.</p>
+
+    <h3>4-1. 관리 시간 절감</h3>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>항목</th>
+                    <th>Before</th>
+                    <th>After</th>
+                    <th>절감 효과</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>프로젝트 현황 파악</td>
+                    <td>수시간 (엑셀 취합)</td>
+                    <td>수초 (SAL Viewer)</td>
+                    <td><strong>99% 절감</strong></td>
+                </tr>
+                <tr>
+                    <td>인수인계</td>
+                    <td>3~5일</td>
+                    <td>30분 이내</td>
+                    <td><strong>95% 절감</strong></td>
+                </tr>
+                <tr>
+                    <td>주간 보고서 작성</td>
+                    <td>반일 (수동 취합)</td>
+                    <td>자동 생성</td>
+                    <td><strong>90% 절감</strong></td>
+                </tr>
+                <tr>
+                    <td>재작업 비용</td>
+                    <td>프로젝트당 10~15%</td>
+                    <td>Stage Gate로 원천 차단</td>
+                    <td><strong>80% 절감</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>4-2. 작업 시간 절감 (SAL Grid + AI 연계)</h3>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>항목</th>
+                    <th>Before</th>
+                    <th>After (SAL Grid + AI)</th>
+                    <th>절감 효과</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>메타데이터 추출/입력</td>
+                    <td>건당 5분 (수작업)</td>
+                    <td>건당 10초 (AI 자동생성)</td>
+                    <td><strong>97% 절감</strong></td>
+                </tr>
+                <tr>
+                    <td>기록물 분류</td>
+                    <td>경험 기반 수동</td>
+                    <td>AI 자동분류 + 사람 검증</td>
+                    <td><strong>70% 절감</strong></td>
+                </tr>
+                <tr>
+                    <td>디지털화 후 검수</td>
+                    <td>전수검사 (1건 2분)</td>
+                    <td>AI 이상탐지 + 샘플링</td>
+                    <td><strong>80% 절감</strong></td>
+                </tr>
+                <tr>
+                    <td>병렬 작업 식별</td>
+                    <td>관리자 경험 의존</td>
+                    <td>SAL Grid 의존성 분석 자동</td>
+                    <td><strong>100% 자동화</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>4-3. 구체적 비용 절감 시뮬레이션</h3>
+    <h4>기록물 10,000건 기준</h4>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>작업</th>
+                    <th>건수</th>
+                    <th>Before (인/시간)</th>
+                    <th>After (인/시간)</th>
+                    <th>절감 시간</th>
+                    <th>절감률</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>메타데이터 입력</td>
+                    <td>10,000건</td>
+                    <td>833시간</td>
+                    <td>28시간</td>
+                    <td>805시간</td>
+                    <td>97%</td>
+                </tr>
+                <tr>
+                    <td>분류/정리</td>
+                    <td>10,000건</td>
+                    <td>500시간</td>
+                    <td>150시간</td>
+                    <td>350시간</td>
+                    <td>70%</td>
+                </tr>
+                <tr>
+                    <td>스캔 후 검수</td>
+                    <td>10,000건</td>
+                    <td>333시간</td>
+                    <td>67시간</td>
+                    <td>266시간</td>
+                    <td>80%</td>
+                </tr>
+                <tr>
+                    <td>현황 관리</td>
+                    <td>6개월</td>
+                    <td>240시간</td>
+                    <td>12시간</td>
+                    <td>228시간</td>
+                    <td>95%</td>
+                </tr>
+                <tr>
+                    <td>보고서 작성</td>
+                    <td>24회</td>
+                    <td>96시간</td>
+                    <td>10시간</td>
+                    <td>86시간</td>
+                    <td>90%</td>
+                </tr>
+                <tr class="total-row">
+                    <td><strong>합계</strong></td>
+                    <td></td>
+                    <td><strong>2,002시간</strong></td>
+                    <td><strong>267시간</strong></td>
+                    <td><strong>1,735시간</strong></td>
+                    <td><strong>87%</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="callout">
+        <p>10,000건 규모 프로젝트 기준, <strong>약 1,735시간 (217일) 절감</strong></p>
+        <p>인건비 환산 시 약 <strong>4,338만원 절감</strong> (시간당 25,000원 기준)</p>
+    </div>
+</section>
+
+<!-- ===== SECTION 5 ===== -->
+<section class="section" id="sec5">
+    <span class="section-number">SECTION 05</span>
+    <h2>SAL Grid + AI Platoon: 대량 AI 병렬 투입</h2>
+    <p class="section-desc">AI 에이전트를 군사 소대 편제 방식으로 조직하여 기록관리를 혁신하는 방법론입니다.</p>
+
+    <h3>5-1. Platoon Formation이란?</h3>
+    <p>AI 에이전트를 <strong>군사 소대(Platoon) 편제 방식</strong>으로 조직하여 <strong>42명의 AI가 동시에</strong> 작업하는 혁신적 방법론입니다. 소프트웨어 개발뿐 아니라, 기록관리처럼 <strong>대량의 반복·분류·검수 작업</strong>이 필요한 분야에서 극대화된 효과를 발휘합니다.</p>
+
+    <div style="background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%); border-radius: 12px; padding: 24px; margin: 20px 0; border-left: 5px solid #1E64DC;">
+        <h4 style="color: #001a3a; margin-bottom: 12px;">핵심 개념: 군사 편제를 AI에 적용</h4>
+        <ul style="list-style: none; padding: 0;">
+            <li style="padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06);">
+                <strong style="color: #1E64DC;">소대장 (Opus)</strong> &mdash; 전체 작전을 지휘하는 오케스트레이터. 직접 작업하지 않고 임무를 분해하여 분대에 배정합니다.
+            </li>
+            <li style="padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06);">
+                <strong style="color: #1E64DC;">3개 분대 (Alpha / Bravo / Charlie)</strong> &mdash; 각 분대장(Sonnet) 1명 + 정규병(SubAgent) 11명 = 12명. 분대장이 임무를 세분화하여 정규병에게 병렬 투입합니다.
+            </li>
+            <li style="padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06);">
+                <strong style="color: #1E64DC;">정규병 11명 (분대 공통)</strong> &mdash; frontend-dev, backend-dev, database-dev, ui-designer, api-dev, code-reviewer, test-runner, debugger, security-spec, doc-writer, devops-ts. 작업 성격에 맞춰 투입됩니다.
+            </li>
+            <li style="padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06);">
+                <strong style="color: #8237BE;">용병 풀 (4명 공유)</strong> &mdash; Codex(코드 생성), Gemini(대용량 분석), Grok(실시간 검색), Perplexity(리서치). 소대장/분대장 누구나 호출 가능한 공유 자산입니다.
+            </li>
+            <li style="padding: 8px 0;">
+                <strong style="color: #199B50;">18개 전문 스킬</strong> &mdash; 방법론(SAL Grid), 통제(Review), 배포, 이미지생성, 문서생성, 보안감사, 테스트 등 11개 Tier의 전문 스킬을 장착합니다.
+            </li>
+        </ul>
+    </div>
+
+    <div style="background: linear-gradient(135deg, #fff8e6 0%, #fff3d0 100%); border-radius: 12px; padding: 24px; margin: 20px 0; border-left: 5px solid #FF8C00;">
+        <h4 style="color: #001a3a; margin-bottom: 12px;">왜 "벌떼"인가?</h4>
+        <p style="margin-bottom: 12px;">기존 AI 활용은 <strong>1명의 AI와 1:1 대화</strong>입니다. Platoon Formation은 이것을 근본적으로 바꿉니다:</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div style="background: #fff0f0; border-radius: 8px; padding: 16px; text-align: center;">
+                <div style="font-size: 2rem; font-weight: 900; color: #dc3545;">1명</div>
+                <div style="font-size: 0.85rem; color: #666;">기존: AI 1명과 순차 작업</div>
+            </div>
+            <div style="background: #f0fff0; border-radius: 8px; padding: 16px; text-align: center;">
+                <div style="font-size: 2rem; font-weight: 900; color: #28a745;">42명</div>
+                <div style="font-size: 0.85rem; color: #666;">Platoon: 42명이 동시 병렬 투입</div>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin: 24px 0;">
+        <a href="platoon_formation_v3.svg" target="_blank" class="link-btn primary" style="font-size: 1.05rem;">Platoon Formation 편제표 보기 (SVG) &rarr;</a>
+    </div>
+
+    <div class="platoon-diagram">
+        <div class="platoon-row hq">
+            <div style="width:100%; text-align:center;">
+                <div style="font-weight:700; font-size:1rem; margin-bottom:4px;">HQ (본부)</div>
+                <div>소대장 (Opus) &mdash; 전체 지휘/오케스트레이션 &nbsp;|&nbsp; 연락병 &mdash; 사용자 &harr; 소대장 커뮤니케이션</div>
+            </div>
+        </div>
+        <div class="platoon-row squads">
+            <div style="width:100%;">
+                <div class="squad-cards">
+                    <div class="squad-card">
+                        <div class="squad-name">1분대 Alpha</div>
+                        <div class="squad-size">분대장 + 정규병 11명 (12명)</div>
+                    </div>
+                    <div class="squad-card">
+                        <div class="squad-name">2분대 Bravo</div>
+                        <div class="squad-size">분대장 + 정규병 11명 (12명)</div>
+                    </div>
+                    <div class="squad-card">
+                        <div class="squad-name">3분대 Charlie</div>
+                        <div class="squad-size">분대장 + 정규병 11명 (12명)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="platoon-row mercs" style="justify-content:center; text-align:center;">
+            <div>
+                <div style="font-weight:600; color:#001a3a; margin-bottom:4px;">용병 풀 (4명 공유)</div>
+                <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                    <span style="background:#fff; border:1px solid #ddd; padding:4px 12px; border-radius:6px; font-size:0.82rem;">Codex</span>
+                    <span style="background:#fff; border:1px solid #ddd; padding:4px 12px; border-radius:6px; font-size:0.82rem;">Gemini</span>
+                    <span style="background:#fff; border:1px solid #ddd; padding:4px 12px; border-radius:6px; font-size:0.82rem;">Grok</span>
+                    <span style="background:#fff; border:1px solid #ddd; padding:4px 12px; border-radius:6px; font-size:0.82rem;">Perplexity</span>
+                </div>
+            </div>
+        </div>
+        <div class="platoon-row skills" style="justify-content:center; text-align:center;">
+            <div style="font-weight:600; color:#001a3a;">18개 전문 스킬 패키지</div>
+        </div>
+        <div class="platoon-row total">
+            총 42명 = HQ(2) + 3분대&times;12 + 용병(4)
+        </div>
+    </div>
+
+    <div style="background: #fff; border-radius: 12px; padding: 24px; margin: 24px 0; border: 2px solid #e0e6ee; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+        <h4 style="color: #001a3a; margin-bottom: 16px;">작전 수행 절차 (9단계)</h4>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+            <span style="background: #1E64DC; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;">1. 팀 생성</span>
+            <span style="color: #999;">&rarr;</span>
+            <span style="background: #1E64DC; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;">2. 분대장 3명 스폰</span>
+            <span style="color: #999;">&rarr;</span>
+            <span style="background: #8237BE; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;">3. 용병 연동</span>
+            <span style="color: #999;">&rarr;</span>
+            <span style="background: #199B50; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;">4. 스킬 장착</span>
+            <span style="color: #999;">&rarr;</span>
+            <span style="background: #E69B00; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;">5. 대기 보고</span>
+            <span style="color: #999;">&rarr;</span>
+            <span style="background: #FF8C00; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;">6. 작전 승인</span>
+            <span style="color: #999;">&rarr;</span>
+            <span style="background: #dc3545; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;">7. 임무 수행</span>
+            <span style="color: #999;">&rarr;</span>
+            <span style="background: #0097A7; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;">8. 결과 보고</span>
+            <span style="color: #999;">&rarr;</span>
+            <span style="background: #6c757d; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;">9. 해산</span>
+        </div>
+        <p style="margin-top: 16px; font-size: 0.9rem; color: #666; text-align: center;">
+            사용자 개입은 <strong>최대 3회</strong>(파일 허용 + 작전 승인 + 해산 승인)뿐.<br>
+            나머지는 소대장이 자율적으로 판단하여 42명을 지휘합니다.
+        </p>
+    </div>
+
+    <h3>5-2. KAIT 기록관리에 Platoon 적용 시나리오</h3>
+    <h4>프로젝트: "OO기관 기록물 10,000건 정리 사업"</h4>
+    <div class="table-wrap">
+        <table class="table-orange">
+            <thead>
+                <tr>
+                    <th>분대</th>
+                    <th>담당 Area</th>
+                    <th>SAL Grid 작업</th>
+                    <th>동시 투입 AI</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Alpha</strong></td>
+                    <td>DO(문서) + OR(도면)</td>
+                    <td>S2DO1~S3DO1, S2OR1~S3OR1</td>
+                    <td>분대장 + 11명</td>
+                </tr>
+                <tr>
+                    <td><strong>Bravo</strong></td>
+                    <td>PH(사진) + VD(영상)</td>
+                    <td>S2PH1~S3PH2, S3VD1</td>
+                    <td>분대장 + 11명</td>
+                </tr>
+                <tr>
+                    <td><strong>Charlie</strong></td>
+                    <td>MD(메타) + QC(검수) + DB</td>
+                    <td>S2MD1, S3QC1, S4DB1~S4DB2</td>
+                    <td>분대장 + 11명</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>5-3. 벌떼 전략: 기록물 1만건을 42명이 동시 처리</h3>
+
+    <div class="before-box">
+        <span class="box-label">기존 방식</span>
+        <ul style="list-style:none; padding:0;">
+            <li style="padding:6px 0;">담당자 5명이 순차적으로 작업</li>
+            <li style="padding:6px 0;">메타데이터 입력: 1인당 2,000건 &times; 5분 = 10,000분(167시간)</li>
+            <li style="padding:6px 0; font-weight:700; font-size:1.1rem; color:#dc3545;">전체 소요: 833시간 (약 104일)</li>
+        </ul>
+    </div>
+
+    <div class="after-box">
+        <span class="box-label">Platoon 방식</span>
+        <ul style="list-style:none; padding:0;">
+            <li style="padding:6px 0;">3개 분대 &times; 11명 = 33명의 AI가 동시 투입</li>
+            <li style="padding:6px 0;"><strong>Alpha:</strong> 문서 3,000건 메타데이터 자동 추출</li>
+            <li style="padding:6px 0;"><strong>Bravo:</strong> 사진 4,000건 자동 분류 + 태깅</li>
+            <li style="padding:6px 0;"><strong>Charlie:</strong> 나머지 3,000건 + 품질검수 병렬 수행</li>
+            <li style="padding:6px 0; font-weight:700; font-size:1.1rem; color:#28a745;">전체 소요: 약 25시간 (3일) &mdash; 속도 향상: 33배</li>
+        </ul>
+    </div>
+
+    <h3>5-4. SAL Grid &times; Platoon 시너지</h3>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>SAL Grid (구조)</th>
+                    <th>+</th>
+                    <th>Platoon (실행)</th>
+                    <th>=</th>
+                    <th>결과</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>무엇을 할지 정의</td>
+                    <td style="text-align:center; font-weight:700; color:#FF8C00;">+</td>
+                    <td>누가 할지 배정</td>
+                    <td style="text-align:center; font-weight:700; color:#FF8C00;">=</td>
+                    <td><strong>구조화된 대량 병렬 처리</strong></td>
+                </tr>
+                <tr>
+                    <td>Stage Gate 품질 관리</td>
+                    <td style="text-align:center; font-weight:700; color:#FF8C00;">+</td>
+                    <td>분대별 검증</td>
+                    <td style="text-align:center; font-weight:700; color:#FF8C00;">=</td>
+                    <td><strong>다중 검증으로 품질 향상</strong></td>
+                </tr>
+                <tr>
+                    <td>자동 의존성</td>
+                    <td style="text-align:center; font-weight:700; color:#FF8C00;">+</td>
+                    <td>병렬 작업 식별</td>
+                    <td style="text-align:center; font-weight:700; color:#FF8C00;">=</td>
+                    <td><strong>최적 스케줄링</strong></td>
+                </tr>
+                <tr>
+                    <td>SAL ID 추적</td>
+                    <td style="text-align:center; font-weight:700; color:#FF8C00;">+</td>
+                    <td>42명 작업 통합</td>
+                    <td style="text-align:center; font-weight:700; color:#FF8C00;">=</td>
+                    <td><strong>완벽한 작업 추적</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="quote-box">
+        <p><strong>"SAL Grid가 작업의 '지도'라면, Platoon Formation은 그 지도 위를 달리는 '군단'입니다."</strong></p>
+        <p>구조(SAL Grid) &times; 실행력(AI Platoon) = 기록관리 혁신</p>
+    </div>
+
+    <h3>5-5. 비용 절감 극대화 (Platoon 추가 효과)</h3>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>항목</th>
+                    <th>SAL Grid만</th>
+                    <th>SAL Grid + Platoon</th>
+                    <th>추가 절감</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>메타데이터 입력</td>
+                    <td>28시간</td>
+                    <td>3시간</td>
+                    <td><strong>89% 추가</strong></td>
+                </tr>
+                <tr>
+                    <td>분류/정리</td>
+                    <td>150시간</td>
+                    <td>15시간</td>
+                    <td><strong>90% 추가</strong></td>
+                </tr>
+                <tr>
+                    <td>스캔 후 검수</td>
+                    <td>67시간</td>
+                    <td>8시간</td>
+                    <td><strong>88% 추가</strong></td>
+                </tr>
+                <tr class="total-row">
+                    <td><strong>합계</strong></td>
+                    <td><strong>267시간</strong></td>
+                    <td><strong>38시간</strong></td>
+                    <td><strong>86% 추가</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="callout callout-green">
+        <p>SAL Grid 단독: 2,002시간 &rarr; 267시간 (<strong>87% 절감</strong>)</p>
+        <p>SAL Grid + Platoon: 2,002시간 &rarr; <strong>38시간</strong> (<strong>98% 절감</strong>)</p>
+        <p>104일 걸리던 작업을 <strong>5일 만에 완료</strong></p>
+    </div>
+</section>
+
+<!-- ===== SECTION 6 ===== -->
+<section class="section" id="sec6">
+    <span class="section-number">SECTION 06</span>
+    <h2>SAL Grid Viewer 체험</h2>
+    <p class="section-desc">KAIT 기록관리 프로젝트를 SAL Grid로 관리하면 어떤 모습일까요? 아래 버튼을 클릭하여 가상 Viewer를 직접 체험해 보세요.</p>
+
+    <div class="btn-group">
+        <a href="sal_grid_kait_viewer.html" class="link-btn primary">KAIT 가상 SAL Grid Viewer 열기 &rarr;</a>
+        <a href="viewer_database.html" class="link-btn secondary">실제 SAL Grid Viewer 참고 &rarr;</a>
+    </div>
+
+    <h3>Viewer 주요 기능</h3>
+    <div class="viewer-features">
+        <div class="viewer-feature">
+            <div class="vf-icon">&#x1F4CB;</div>
+            <div class="vf-title">Stage별 카드뷰</div>
+            <div class="vf-desc">전체 작업 현황을 한눈에 파악</div>
+        </div>
+        <div class="viewer-feature">
+            <div class="vf-icon">&#x1F50D;</div>
+            <div class="vf-title">상태 필터링</div>
+            <div class="vf-desc">대기/진행중/완료 상태별 필터</div>
+        </div>
+        <div class="viewer-feature">
+            <div class="vf-icon">&#x1F50E;</div>
+            <div class="vf-title">검색 기능</div>
+            <div class="vf-desc">특정 작업을 즉시 찾기</div>
+        </div>
+        <div class="viewer-feature">
+            <div class="vf-icon">&#x2705;</div>
+            <div class="vf-title">Stage Gate</div>
+            <div class="vf-desc">단계별 품질 검증</div>
+        </div>
+        <div class="viewer-feature">
+            <div class="vf-icon">&#x1F4C4;</div>
+            <div class="vf-title">작업 상세 정보</div>
+            <div class="vf-desc">클릭 한 번으로 상세 확인</div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+    <p>&copy; 2026 AI Magic Show | SAL Grid Methodology</p>
+    <p>문의: <a href="mailto:sunny@example.com">sunny@example.com</a></p>
+</footer>
+
+<!-- ===== Scroll Animation ===== -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var sections = document.querySelectorAll('.section');
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.08,
+            rootMargin: '0px 0px -40px 0px'
+        });
+
+        sections.forEach(function(section) {
+            observer.observe(section);
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAIT 기록관리 SAL Grid Viewer</title>
+<style>
+:root {
+  --primary: #10B981;
+  --primary-dark: #059669;
+  --secondary: #2C4A8A;
+  --secondary-dark: #1F3563;
+  --status-completed: #28a745;
+  --status-inprogress: #ffc107;
+  --status-pending: #6c757d;
+  --bg-light: #f4f6f9;
+  --text-dark: #2d3748;
+  --text-muted: #718096;
+  --card-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --card-shadow-hover: 0 8px 25px rgba(0,0,0,0.15);
+  --transition: all 0.3s ease;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+  background: var(--bg-light);
+  color: var(--text-dark);
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+  color: #fff;
+  padding: 20px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.header-left { display: flex; flex-direction: column; gap: 4px; }
+
+.header-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.header-subtitle {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  background: rgba(255,255,255,0.1);
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+
+.connection-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4da6ff;
+  animation: pulse-blue 2s infinite;
+}
+
+@keyframes pulse-blue {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(77,166,255,0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(77,166,255,0); }
+}
+
+.close-btn {
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.close-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
+
+/* Stage Tabs */
+.stage-tabs-container {
+  background: #fff;
+  padding: 16px 30px 0;
+  border-bottom: 1px solid #e2e8f0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.stage-tabs {
+  display: flex;
+  gap: 8px;
+  min-width: max-content;
+  padding-bottom: 12px;
+}
+
+.stage-tab {
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: 2px solid #e2e8f0;
+  background: #fff;
+  color: var(--text-dark);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stage-tab:hover { border-color: var(--primary); color: var(--primary); }
+
+.stage-tab.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.stage-tab .tab-count {
+  background: rgba(0,0,0,0.1);
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+}
+
+.stage-tab.active .tab-count { background: rgba(255,255,255,0.3); }
+
+/* Stage Gate Panel */
+.stage-gate-panel {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #f59e0b;
+  border-radius: 12px;
+  margin: 16px 30px 0;
+  padding: 18px 24px;
+  display: none;
+  animation: slideDown 0.3s ease;
+}
+
+.stage-gate-panel.visible { display: block; }
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stage-gate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.stage-gate-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #92400e;
+}
+
+.stage-gate-status {
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.stage-gate-status.unlocked { background: var(--status-completed); color: #fff; }
+.stage-gate-status.locked { background: var(--status-pending); color: #fff; }
+
+.stage-gate-criteria {
+  font-size: 0.85rem;
+  color: #78350f;
+  line-height: 1.6;
+}
+
+/* Toolbar */
+.toolbar {
+  padding: 20px 30px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+  max-width: 400px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 10px 16px 10px 40px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: var(--transition);
+  outline: none;
+}
+
+.search-box input:focus { border-color: var(--primary); }
+
+.search-box::before {
+  content: '\1F50D';
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+}
+
+.filter-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: 2px solid #e2e8f0;
+  background: #fff;
+  color: var(--text-dark);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.filter-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+.filter-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.task-count-display {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Statistics Bar */
+.stats-bar {
+  display: flex;
+  gap: 16px;
+  padding: 16px 30px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 140px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: var(--card-shadow);
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-value.total { color: var(--secondary); }
+.stat-value.pending { color: var(--status-pending); }
+.stat-value.inprogress { color: var(--status-inprogress); }
+.stat-value.completed { color: var(--status-completed); }
+.stat-value.progress-val { color: var(--primary); }
+
+.stat-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+/* Area Sections */
+.content-area { padding: 0 30px 40px; }
+
+.area-section {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  background: #fff;
+}
+
+.area-header {
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+  color: #fff;
+  padding: 14px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  transition: var(--transition);
+}
+
+.area-header:hover { filter: brightness(1.1); }
+
+.area-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.area-code {
+  background: rgba(255,255,255,0.2);
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.area-name { font-weight: 600; font-size: 1rem; }
+
+.area-toggle {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.area-toggle.collapsed { transform: rotate(-90deg); }
+
+.area-body {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 16px;
+  transition: var(--transition);
+}
+
+.area-body.collapsed { display: none; }
+
+.area-count {
+  background: rgba(255,255,255,0.2);
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 0.78rem;
+}
+
+/* Task Cards */
+.task-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 18px 20px;
+  border: 1px solid #e2e8f0;
+  border-left: 5px solid var(--status-pending);
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+
+.task-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.task-card.status-completed { border-left-color: var(--status-completed); }
+.task-card.status-inprogress { border-left-color: var(--status-inprogress); }
+.task-card.status-pending { border-left-color: var(--status-pending); }
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.sal-id {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--secondary);
+  font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.status-badge {
+  padding: 3px 12px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.status-badge.completed { background: var(--status-completed); }
+.status-badge.inprogress { background: var(--status-inprogress); color: #333; }
+.status-badge.pending { background: var(--status-pending); }
+
+.card-task-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+  color: var(--text-dark);
+  line-height: 1.4;
+}
+
+.card-attrs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  font-size: 0.82rem;
+}
+
+.card-attr {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-attr-label {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.card-attr-value {
+  color: var(--text-dark);
+  font-weight: 500;
+}
+
+.progress-row {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+}
+
+.progress-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+.progress-fill.completed { background: var(--status-completed); }
+.progress-fill.inprogress { background: var(--status-inprogress); }
+.progress-fill.pending { background: var(--status-pending); }
+
+.progress-text {
+  font-size: 0.8rem;
+  font-weight: 700;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.modal-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 560px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.modal-overlay.visible .modal { transform: scale(1); }
+
+.modal-header {
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+  color: #fff;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-header-info { flex: 1; }
+
+.modal-sal-id {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  margin-bottom: 6px;
+}
+
+.modal-task-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.modal-close:hover { background: rgba(255,255,255,0.3); }
+
+.modal-body { padding: 24px; }
+
+.modal-attrs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-attr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-attr:last-child { border-bottom: none; padding-bottom: 0; }
+
+.modal-attr-label {
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.modal-attr-value {
+  font-weight: 500;
+  color: var(--text-dark);
+  font-size: 0.92rem;
+  text-align: right;
+}
+
+.modal-progress-section {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.modal-progress-bar {
+  height: 12px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.modal-progress-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.6s ease;
+}
+
+.modal-deps-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.modal-dep-tag {
+  background: #edf2f7;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-family: 'Consolas', 'Courier New', monospace;
+  color: var(--secondary);
+  font-weight: 600;
+}
+
+.modal-status-badge {
+  padding: 4px 16px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.modal-status-badge.completed { background: var(--status-completed); }
+.modal-status-badge.inprogress { background: var(--status-inprogress); color: #333; }
+.modal-status-badge.pending { background: var(--status-pending); }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.empty-state-icon { font-size: 3rem; margin-bottom: 12px; }
+.empty-state-text { font-size: 1rem; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header { padding: 16px 20px; }
+  .header-title { font-size: 1.2rem; }
+  .stage-tabs-container { padding: 12px 20px 0; }
+  .toolbar { padding: 16px 20px; }
+  .stats-bar { padding: 12px 20px; gap: 10px; }
+  .stat-card { min-width: 100px; padding: 12px 14px; }
+  .stat-value { font-size: 1.4rem; }
+  .content-area { padding: 0 20px 30px; }
+  .area-body { padding: 14px; grid-template-columns: 1fr; }
+  .connection-status { display: none; }
+}
+
+@media (max-width: 480px) {
+  .header { padding: 12px 16px; }
+  .header-title { font-size: 1.05rem; }
+  .header-subtitle { font-size: 0.75rem; }
+  .stage-tabs-container { padding: 10px 16px 0; }
+  .stage-tab { padding: 6px 12px; font-size: 0.78rem; }
+  .toolbar { padding: 12px 16px; gap: 10px; }
+  .search-box { min-width: 100%; }
+  .filter-btn { padding: 6px 12px; font-size: 0.78rem; }
+  .stats-bar { padding: 10px 16px; gap: 8px; }
+  .stat-card { min-width: 70px; padding: 10px; }
+  .stat-value { font-size: 1.2rem; }
+  .stat-label { font-size: 0.7rem; }
+  .content-area { padding: 0 16px 20px; }
+  .area-body { padding: 10px; }
+  .task-card { padding: 14px 16px; }
+  .card-attrs { grid-template-columns: 1fr; }
+  .modal { width: 95%; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #a1a1a1; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-left">
+    <div class="header-title">KAIT 기록관리 SAL Grid Viewer</div>
+    <div class="header-subtitle">OO공공기관 기록물 정리 및 디지털화 사업</div>
+  </div>
+  <div class="header-right">
+    <div class="connection-status">
+      <span class="connection-dot"></span>
+      <span>가상 데이터 (Standalone)</span>
+    </div>
+    <button class="close-btn" onclick="window.close() || history.back()" title="닫기">&times;</button>
+  </div>
+</header>
+
+<!-- Stage Tabs -->
+<div class="stage-tabs-container">
+  <div class="stage-tabs" id="stageTabs"></div>
+</div>
+
+<!-- Stage Gate Panel -->
+<div class="stage-gate-panel" id="stageGatePanel">
+  <div class="stage-gate-header">
+    <div class="stage-gate-title" id="stageGateTitle"></div>
+    <div class="stage-gate-status" id="stageGateStatus"></div>
+  </div>
+  <div class="stage-gate-criteria" id="stageGateCriteria"></div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="SAL ID 또는 작업명 검색..." oninput="applyFilters()">
+  </div>
+  <div class="filter-group" id="statusFilters"></div>
+  <div class="task-count-display" id="taskCountDisplay"></div>
+</div>
+
+<!-- Statistics Bar -->
+<div class="stats-bar" id="statsBar"></div>
+
+<!-- Content -->
+<div class="content-area" id="contentArea"></div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+// ─── Data Definitions ────────────────────────────────────────────
+
+const STAGES = [
+  { id: 0, code: 'S0', name: '사전컨설팅', desc: '현황조사, 범위확정', criteria: '현황조사 보고서 완료, 사업범위 확정 및 승인' },
+  { id: 1, code: 'S1', name: '기록물 수집', desc: '이관, 반출, 목록화', criteria: '모든 대상 기록물 수집 완료, 이관 목록 최종 확인' },
+  { id: 2, code: 'S2', name: '분류·정리', desc: '분류체계 적용, 메타데이터', criteria: '전체 기록물 분류 완료, 메타데이터 부여율 100%' },
+  { id: 3, code: 'S3', name: '디지털화', desc: '스캔, OCR, 품질검수', criteria: '전체 스캔 완료, OCR 정확도 95% 이상, 품질검수 통과' },
+  { id: 4, code: 'S4', name: 'DB 구축', desc: '시스템 입력, 연계', criteria: 'RMS 시스템 데이터 입력 완료, 메타데이터 연계 검증' },
+  { id: 5, code: 'S5', name: '보존·활용', desc: '보존처리, 콘텐츠 제작', criteria: '원본 보존처리 완료, 활용 콘텐츠 제작 및 승인' },
+  { id: 6, code: 'S6', name: '납품·검수', desc: '최종검수, 인수인계', criteria: '최종 품질검수 통과, 납품문서 제출, 인수인계 완료' }
+];
+
+const AREAS = [
+  { code: 'DO', name: '일반문서', examples: '공문, 보고서, 회의록' },
+  { code: 'PH', name: '사진', examples: '행사사진, 증명사진' },
+  { code: 'VD', name: '영상', examples: '녹화영상, 홍보영상' },
+  { code: 'OR', name: '원도면', examples: '설계도, 도면' },
+  { code: 'MD', name: '메타데이터', examples: '기술정보, 분류코드' },
+  { code: 'DB', name: '데이터베이스', examples: 'RMS 연계, 시스템등록' },
+  { code: 'QC', name: '품질검수', examples: '검수보고서, 오류목록' },
+  { code: 'PM', name: '프로젝트관리', examples: '일정, 인력, 보고' }
+];
+
+const TASKS = [
+  { sal_id: 'S0PM1', task_name: '프로젝트 킥오프 미팅', stage: 0, area: 'PM', status: 'Completed', assignee: '김태호', progress: 100, dependencies: [] },
+  { sal_id: 'S0PM2', task_name: '현황조사 및 범위확정', stage: 0, area: 'PM', status: 'Completed', assignee: '김태호', progress: 100, dependencies: [] },
+  { sal_id: 'S0DO1', task_name: '사전조사 보고서 작성', stage: 0, area: 'DO', status: 'Completed', assignee: '이수연', progress: 100, dependencies: [] },
+  { sal_id: 'S1DO1', task_name: '이관대상 목록 작성', stage: 1, area: 'DO', status: 'Completed', assignee: '이수연', progress: 100, dependencies: [] },
+  { sal_id: 'S1DO2', task_name: '일반문서 수집·반출', stage: 1, area: 'DO', status: 'Completed', assignee: '박준혁', progress: 100, dependencies: [] },
+  { sal_id: 'S1PH1', task_name: '사진기록물 수집', stage: 1, area: 'PH', status: 'Completed', assignee: '정유진', progress: 100, dependencies: [] },
+  { sal_id: 'S1VD1', task_name: '영상기록물 수집', stage: 1, area: 'VD', status: 'Completed', assignee: '정유진', progress: 100, dependencies: [] },
+  { sal_id: 'S1OR1', task_name: '도면기록물 수집', stage: 1, area: 'OR', status: 'Completed', assignee: '박준혁', progress: 100, dependencies: [] },
+  { sal_id: 'S2DO1', task_name: '일반문서 분류체계 매핑', stage: 2, area: 'DO', status: 'Completed', assignee: '이수연', progress: 100, dependencies: ['S1DO1'] },
+  { sal_id: 'S2DO2', task_name: '일반문서 메타데이터 부여', stage: 2, area: 'DO', status: 'In Progress', assignee: '이수연', progress: 65, dependencies: ['S2DO1'] },
+  { sal_id: 'S2PH1', task_name: '사진 분류 및 정리', stage: 2, area: 'PH', status: 'In Progress', assignee: '정유진', progress: 50, dependencies: ['S1PH1'] },
+  { sal_id: 'S2MD1', task_name: '메타데이터 자동추출 스크립트 실행', stage: 2, area: 'MD', status: 'In Progress', assignee: '최민수', progress: 70, dependencies: ['S2DO1'] },
+  { sal_id: 'S2OR1', task_name: '도면 분류 및 정리', stage: 2, area: 'OR', status: 'In Progress', assignee: '박준혁', progress: 40, dependencies: ['S1OR1'] },
+  { sal_id: 'S3DO1', task_name: '일반문서 양면스캔', stage: 3, area: 'DO', status: 'Pending', assignee: '박준혁', progress: 0, dependencies: ['S2DO2'] },
+  { sal_id: 'S3PH1', task_name: '사진 고해상도 스캔', stage: 3, area: 'PH', status: 'Pending', assignee: '정유진', progress: 0, dependencies: ['S2PH1'] },
+  { sal_id: 'S3PH2', task_name: '사진 디지털 복원', stage: 3, area: 'PH', status: 'Pending', assignee: '정유진', progress: 0, dependencies: ['S3PH1'] },
+  { sal_id: 'S3OR1', task_name: '도면 대형스캔', stage: 3, area: 'OR', status: 'Pending', assignee: '박준혁', progress: 0, dependencies: ['S2OR1'] },
+  { sal_id: 'S3QC1', task_name: 'OCR 정확도 검증', stage: 3, area: 'QC', status: 'Pending', assignee: '최민수', progress: 0, dependencies: ['S3DO1'] },
+  { sal_id: 'S3VD1', task_name: '영상 디지털 변환', stage: 3, area: 'VD', status: 'In Progress', assignee: '정유진', progress: 30, dependencies: ['S1VD1'] },
+  { sal_id: 'S4DB1', task_name: 'RMS 시스템 데이터 입력', stage: 4, area: 'DB', status: 'Pending', assignee: '최민수', progress: 0, dependencies: ['S3DO1', 'S3QC1'] },
+  { sal_id: 'S4DB2', task_name: '메타데이터 시스템 연계', stage: 4, area: 'DB', status: 'Pending', assignee: '최민수', progress: 0, dependencies: ['S4DB1'] },
+  { sal_id: 'S4MD1', task_name: '최종 메타데이터 검증', stage: 4, area: 'MD', status: 'Pending', assignee: '이수연', progress: 0, dependencies: ['S4DB2'] },
+  { sal_id: 'S5DO1', task_name: '원본 기록물 보존처리', stage: 5, area: 'DO', status: 'Pending', assignee: '박준혁', progress: 0, dependencies: ['S4DB1'] },
+  { sal_id: 'S5PM1', task_name: '활용 콘텐츠 기획', stage: 5, area: 'PM', status: 'Pending', assignee: '김태호', progress: 0, dependencies: ['S4DB2'] },
+  { sal_id: 'S6QC1', task_name: '최종 품질검수', stage: 6, area: 'QC', status: 'Pending', assignee: '최민수', progress: 0, dependencies: ['S5DO1', 'S5PM1'] },
+  { sal_id: 'S6PM1', task_name: '납품 문서 작성', stage: 6, area: 'PM', status: 'Pending', assignee: '김태호', progress: 0, dependencies: ['S6QC1'] },
+  { sal_id: 'S6PM2', task_name: '인수인계 및 교육', stage: 6, area: 'PM', status: 'Pending', assignee: '김태호', progress: 0, dependencies: ['S6PM1'] }
+];
+
+// ─── State ───────────────────────────────────────────────────────
+
+let activeStage = -1; // -1 = all
+let activeStatus = 'all';
+let searchQuery = '';
+let collapsedAreas = new Set();
+
+// ─── Helpers ─────────────────────────────────────────────────────
+
+const getStatusClass = (status) => {
+  if (status === 'Completed') return 'completed';
+  if (status === 'In Progress') return 'inprogress';
+  return 'pending';
+};
+
+const getStatusLabel = (status) => {
+  if (status === 'Completed') return '완료';
+  if (status === 'In Progress') return '진행중';
+  return '대기';
+};
+
+const getStageName = (stageNum) => STAGES[stageNum]?.name || '';
+const getAreaName = (code) => AREAS.find(a => a.code === code)?.name || code;
+
+const getFilteredTasks = () => {
+  return TASKS.filter(t => {
+    if (activeStage >= 0 && t.stage !== activeStage) return false;
+    if (activeStatus === 'Pending' && t.status !== 'Pending') return false;
+    if (activeStatus === 'In Progress' && t.status !== 'In Progress') return false;
+    if (activeStatus === 'Completed' && t.status !== 'Completed') return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      if (!t.sal_id.toLowerCase().includes(q) && !t.task_name.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+};
+
+// ─── Render: Stage Tabs ─────────────────────────────────────────
+
+function renderStageTabs() {
+  const container = document.getElementById('stageTabs');
+  const allCount = TASKS.length;
+  let html = `<button class="stage-tab ${activeStage === -1 ? 'active' : ''}" onclick="setStage(-1)">전체 <span class="tab-count">${allCount}</span></button>`;
+  STAGES.forEach(s => {
+    const count = TASKS.filter(t => t.stage === s.id).length;
+    html += `<button class="stage-tab ${activeStage === s.id ? 'active' : ''}" onclick="setStage(${s.id})">${s.code} ${s.name} <span class="tab-count">${count}</span></button>`;
+  });
+  container.innerHTML = html;
+}
+
+function setStage(stageId) {
+  activeStage = stageId;
+  renderStageTabs();
+  renderStageGate();
+  applyFilters();
+}
+
+// ─── Render: Stage Gate ─────────────────────────────────────────
+
+function renderStageGate() {
+  const panel = document.getElementById('stageGatePanel');
+  if (activeStage < 0) {
+    panel.classList.remove('visible');
+    return;
+  }
+  const stage = STAGES[activeStage];
+  const stageTasks = TASKS.filter(t => t.stage === activeStage);
+  const allCompleted = stageTasks.every(t => t.status === 'Completed');
+  const completedCount = stageTasks.filter(t => t.status === 'Completed').length;
+
+  document.getElementById('stageGateTitle').textContent = `Stage Gate: ${stage.code} ${stage.name}`;
+  const statusEl = document.getElementById('stageGateStatus');
+  statusEl.textContent = allCompleted ? 'UNLOCKED' : 'LOCKED';
+  statusEl.className = `stage-gate-status ${allCompleted ? 'unlocked' : 'locked'}`;
+  document.getElementById('stageGateCriteria').innerHTML =
+    `<strong>완료 조건:</strong> ${stage.criteria}<br>` +
+    `<strong>진행 현황:</strong> ${completedCount}/${stageTasks.length} 작업 완료`;
+  panel.classList.add('visible');
+}
+
+// ─── Render: Status Filters ─────────────────────────────────────
+
+function renderStatusFilters() {
+  const container = document.getElementById('statusFilters');
+  const filters = [
+    { key: 'all', label: '전체' },
+    { key: 'Pending', label: '대기' },
+    { key: 'In Progress', label: '진행중' },
+    { key: 'Completed', label: '완료' }
+  ];
+  container.innerHTML = filters.map(f =>
+    `<button class="filter-btn ${activeStatus === f.key ? 'active' : ''}" onclick="setStatusFilter('${f.key}')">${f.label}</button>`
+  ).join('');
+}
+
+function setStatusFilter(status) {
+  activeStatus = status;
+  renderStatusFilters();
+  applyFilters();
+}
+
+// ─── Render: Statistics ─────────────────────────────────────────
+
+function renderStats(tasks) {
+  const total = tasks.length;
+  const pending = tasks.filter(t => t.status === 'Pending').length;
+  const inProgress = tasks.filter(t => t.status === 'In Progress').length;
+  const completed = tasks.filter(t => t.status === 'Completed').length;
+  const avgProgress = total > 0 ? Math.round(tasks.reduce((s, t) => s + t.progress, 0) / total) : 0;
+
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat-card"><div class="stat-value total">${total}</div><div class="stat-label">전체 작업</div></div>
+    <div class="stat-card"><div class="stat-value pending">${pending}</div><div class="stat-label">대기</div></div>
+    <div class="stat-card"><div class="stat-value inprogress">${inProgress}</div><div class="stat-label">진행중</div></div>
+    <div class="stat-card"><div class="stat-value completed">${completed}</div><div class="stat-label">완료</div></div>
+    <div class="stat-card"><div class="stat-value progress-val">${avgProgress}%</div><div class="stat-label">전체 진행률</div></div>
+  `;
+}
+
+// ─── Render: Task Cards ─────────────────────────────────────────
+
+function renderTaskCard(task) {
+  const sc = getStatusClass(task.status);
+  const deps = task.dependencies.length > 0 ? task.dependencies.join(', ') : '없음';
+  return `
+    <div class="task-card status-${sc}" onclick="openModal('${task.sal_id}')">
+      <div class="card-top">
+        <span class="sal-id">${task.sal_id}</span>
+        <span class="status-badge ${sc}">${getStatusLabel(task.status)}</span>
+      </div>
+      <div class="card-task-name">${task.task_name}</div>
+      <div class="card-attrs">
+        <div class="card-attr">
+          <span class="card-attr-label">Stage</span>
+          <span class="card-attr-value">${STAGES[task.stage].code} ${getStageName(task.stage)}</span>
+        </div>
+        <div class="card-attr">
+          <span class="card-attr-label">Area</span>
+          <span class="card-attr-value">${getAreaName(task.area)}</span>
+        </div>
+        <div class="card-attr">
+          <span class="card-attr-label">담당자</span>
+          <span class="card-attr-value">${task.assignee}</span>
+        </div>
+        <div class="card-attr">
+          <span class="card-attr-label">의존성</span>
+          <span class="card-attr-value">${deps}</span>
+        </div>
+        <div class="card-attr progress-row">
+          <span class="card-attr-label">진행률</span>
+          <div class="progress-bar-container">
+            <div class="progress-bar"><div class="progress-fill ${sc}" style="width:${task.progress}%"></div></div>
+            <span class="progress-text">${task.progress}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ─── Render: Content Area ───────────────────────────────────────
+
+function renderContent(tasks) {
+  const container = document.getElementById('contentArea');
+  document.getElementById('taskCountDisplay').textContent = `${tasks.length}건 표시`;
+
+  if (tasks.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">&#128269;</div><div class="empty-state-text">조건에 맞는 작업이 없습니다.</div></div>`;
+    return;
+  }
+
+  // Group by area
+  const grouped = {};
+  tasks.forEach(t => {
+    if (!grouped[t.area]) grouped[t.area] = [];
+    grouped[t.area].push(t);
+  });
+
+  // Render in AREAS order
+  let html = '';
+  AREAS.forEach(area => {
+    const areaTasks = grouped[area.code];
+    if (!areaTasks || areaTasks.length === 0) return;
+    const isCollapsed = collapsedAreas.has(area.code);
+    html += `
+      <div class="area-section">
+        <div class="area-header" onclick="toggleArea('${area.code}')">
+          <div class="area-header-left">
+            <span class="area-code">${area.code}</span>
+            <span class="area-name">${area.name}</span>
+            <span class="area-count">${areaTasks.length}건</span>
+          </div>
+          <span class="area-toggle ${isCollapsed ? 'collapsed' : ''}">&#9660;</span>
+        </div>
+        <div class="area-body ${isCollapsed ? 'collapsed' : ''}">
+          ${areaTasks.map(t => renderTaskCard(t)).join('')}
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function toggleArea(code) {
+  if (collapsedAreas.has(code)) {
+    collapsedAreas.delete(code);
+  } else {
+    collapsedAreas.add(code);
+  }
+  applyFilters();
+}
+
+// ─── Filter ─────────────────────────────────────────────────────
+
+function applyFilters() {
+  searchQuery = document.getElementById('searchInput').value;
+  const tasks = getFilteredTasks();
+  renderStats(tasks);
+  renderContent(tasks);
+}
+
+// ─── Modal ──────────────────────────────────────────────────────
+
+function openModal(salId) {
+  const task = TASKS.find(t => t.sal_id === salId);
+  if (!task) return;
+
+  const sc = getStatusClass(task.status);
+  const deps = task.dependencies.length > 0
+    ? `<div class="modal-deps-list">${task.dependencies.map(d => `<span class="modal-dep-tag">${d}</span>`).join('')}</div>`
+    : '<span>없음</span>';
+
+  const progressColor = task.status === 'Completed' ? 'var(--status-completed)' :
+                        task.status === 'In Progress' ? 'var(--status-inprogress)' : 'var(--status-pending)';
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-sal-id">${task.sal_id}</div>
+        <div class="modal-task-name">${task.task_name}</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-attrs">
+        <div class="modal-attr">
+          <span class="modal-attr-label">상태</span>
+          <span class="modal-status-badge ${sc}">${getStatusLabel(task.status)}</span>
+        </div>
+        <div class="modal-attr">
+          <span class="modal-attr-label">Stage</span>
+          <span class="modal-attr-value">${STAGES[task.stage].code} ${getStageName(task.stage)}</span>
+        </div>
+        <div class="modal-attr">
+          <span class="modal-attr-label">Stage 설명</span>
+          <span class="modal-attr-value">${STAGES[task.stage].desc}</span>
+        </div>
+        <div class="modal-attr">
+          <span class="modal-attr-label">Area</span>
+          <span class="modal-attr-value">${task.area} - ${getAreaName(task.area)}</span>
+        </div>
+        <div class="modal-attr">
+          <span class="modal-attr-label">담당자</span>
+          <span class="modal-attr-value">${task.assignee}</span>
+        </div>
+        <div class="modal-attr">
+          <span class="modal-attr-label">의존성</span>
+          <span class="modal-attr-value">${deps}</span>
+        </div>
+      </div>
+      <div class="modal-progress-section">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="modal-attr-label">진행률</span>
+          <span style="font-size:1.3rem;font-weight:700;color:${progressColor}">${task.progress}%</span>
+        </div>
+        <div class="modal-progress-bar">
+          <div class="modal-progress-fill" style="width:${task.progress}%;background:${progressColor}"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('modalOverlay').classList.add('visible');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalOverlay') && !e.target.classList.contains('modal-close')) return;
+  document.getElementById('modalOverlay').classList.remove('visible');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ─── Init ───────────────────────────────────────────────────────
+
+function init() {
+  renderStageTabs();
+  renderStatusFilters();
+  applyFilters();
+}
+
+init();
+</script>
+</body>
+</html>
